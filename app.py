@@ -1,6 +1,6 @@
 """
 PSICOTÈCNIC 3 EN 1 - App per a Streamlit
-Sense Tkinter - Funciona a Streamlit Cloud
+Versió amb navegació corregida
 """
 
 import streamlit as st
@@ -1329,8 +1329,6 @@ if 'mem_notes' not in st.session_state:
     st.session_state.mem_notes = ''
 if 'view_time' not in st.session_state:
     st.session_state.view_time = 30
-if 'selected_option' not in st.session_state:
-    st.session_state.selected_option = None
 
 # ==============================================================
 # FUNCIONS DE NAVEGACIÓ
@@ -1348,7 +1346,6 @@ def reset_quiz():
     st.session_state.total = 0
     st.session_state.time_limit = 120
     st.session_state.timer_start = None
-    st.session_state.selected_option = None
 
 # ==============================================================
 # PÀGINA D'INICI
@@ -1360,32 +1357,58 @@ def home_page():
     
     col1, col2, col3 = st.columns(3)
     
-    cards = [
-        ('📝', 'Pràctica', 'Exercicis interactius de Càlcul, Català i Memorització', 'practica', '▶ Començar'),
-        ('📐', 'Matemàtiques', 'Conceptes i fórmules per resoldre els exercicis', 'teoria', '📖 Consultar'),
-        ('📝', 'Ortografia', 'Regles i normes per escriure correctament en català', 'ortografia', '📖 Consultar')
-    ]
+    with col1:
+        st.markdown("""
+        <div class="home-card">
+            <div class="icon">📝</div>
+            <div class="title">Pràctica</div>
+            <div class="desc">Exercicis interactius de Càlcul, Català i Memorització</div>
+            <div class="tag">▶ Començar</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("▶ Anar a Pràctica", key="btn_practica", use_container_width=True, type="primary"):
+            go_to_page('practica')
     
-    for col, (icon, title, desc, page, tag) in zip([col1, col2, col3], cards):
-        with col:
-            st.markdown(f"""
-            <div class="home-card" onclick="location.href='?page={page}'">
-                <div class="icon">{icon}</div>
-                <div class="title">{title}</div>
-                <div class="desc">{desc}</div>
-                <div class="tag">{tag}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        <div class="home-card">
+            <div class="icon">📐</div>
+            <div class="title">Matemàtiques</div>
+            <div class="desc">Conceptes i fórmules per resoldre els exercicis</div>
+            <div class="tag">📖 Consultar</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("📖 Anar a Matemàtiques", key="btn_teoria", use_container_width=True, type="secondary"):
+            go_to_page('teoria')
+    
+    with col3:
+        st.markdown("""
+        <div class="home-card">
+            <div class="icon">📝</div>
+            <div class="title">Ortografia</div>
+            <div class="desc">Regles i normes per escriure correctament en català</div>
+            <div class="tag">📖 Consultar</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("📖 Anar a Ortografia", key="btn_ortografia", use_container_width=True, type="secondary"):
+            go_to_page('ortografia')
 
 # ==============================================================
 # PÀGINA: PRÀCTICA
 # ==============================================================
 
 def practica_page():
-    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">🎯</div><div class="app-header-title">Pràctica</div></div></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="app-header">
+        <div class="app-header-left">
+            <div class="app-header-icon">🎯</div>
+            <div class="app-header-title">Pràctica</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Botó tornar
-    st.markdown('<div class="btn-back" onclick="location.href=\'/\'">← Tornar al menú</div>', unsafe_allow_html=True)
+    if st.button("← Tornar al menú", key="back_from_practica"):
+        go_to_page('home')
     
     # Instruccions
     instr = get_module_instructions(st.session_state.module)
@@ -1425,7 +1448,8 @@ def practica_page():
                 if st.button(
                     module_labels[mod],
                     use_container_width=True,
-                    type="primary" if st.session_state.module == mod else "secondary"
+                    type="primary" if st.session_state.module == mod else "secondary",
+                    key=f"mod_{mod}"
                 ):
                     st.session_state.module = mod
                     st.rerun()
@@ -1449,13 +1473,14 @@ def practica_page():
                     if st.button(
                         level_labels[level],
                         use_container_width=True,
-                        type="primary" if st.session_state.level == level else "secondary"
+                        type="primary" if st.session_state.level == level else "secondary",
+                        key=f"level_{level}"
                     ):
                         st.session_state.level = level
                         st.rerun()
             
             # Botó començar
-            if st.button('▶ Començar', use_container_width=True, type="primary"):
+            if st.button('▶ Començar', use_container_width=True, type="primary", key="btn_start_quiz"):
                 bank = QUESTIONS.get(st.session_state.module, {}).get(st.session_state.level, [])
                 if bank:
                     selected = select_random_questions(num_q, bank)
@@ -1464,17 +1489,15 @@ def practica_page():
                     st.session_state.current_q = 0
                     st.session_state.score = 0
                     st.session_state.answers = []
-                    st.session_state.selected_option = None
                     st.session_state.time_limit = minutes * 60
                     st.session_state.timer_start = time.time()
-                    st.session_state.page = 'quiz'
-                    st.rerun()
+                    go_to_page('quiz')
                 else:
                     st.warning('No hi ha preguntes per a aquest mòdul i nivell.')
         
         else:
             # Memorització
-            uploaded_file = st.file_uploader("🖼️ Selecciona una imatge", type=['png', 'jpg', 'jpeg', 'gif'])
+            uploaded_file = st.file_uploader("🖼️ Selecciona una imatge", type=['png', 'jpg', 'jpeg', 'gif'], key="mem_upload")
             if uploaded_file:
                 st.session_state.image_file = uploaded_file
                 st.image(uploaded_file, caption='Imatge carregada', use_container_width=True)
@@ -1482,11 +1505,10 @@ def practica_page():
             view_time = st.number_input('⏱️ Visualització (s)', min_value=5, max_value=300, value=30, key="view_time_input")
             st.session_state.view_time = view_time
             
-            if st.button('▶ Començar memorització', use_container_width=True, type="primary"):
+            if st.button('▶ Començar memorització', use_container_width=True, type="primary", key="btn_start_mem"):
                 if st.session_state.image_file:
-                    st.session_state.page = 'memorization'
                     st.session_state.mem_phase = 'viewing'
-                    st.rerun()
+                    go_to_page('memorization')
                 else:
                     st.warning('Si us plau, selecciona una imatge primer.')
         
@@ -1511,8 +1533,7 @@ def quiz_page():
         timer_html += f'<span class="timer-text {warning_class}">⏱ {mins:02d}:{secs:02d}</span>'
         
         if remaining <= 0:
-            st.session_state.page = 'results'
-            st.rerun()
+            go_to_page('results')
             return
     timer_html += '<div class="progress-container"><div class="progress-fill" style="width:' + str((current / len(questions) * 100) if questions else 0) + '%;"></div></div>'
     timer_html += f'<span style="font-size:0.8rem;color:#636E72;font-weight:500;">{current}/{len(questions)}</span>'
@@ -1520,8 +1541,7 @@ def quiz_page():
     st.markdown(timer_html, unsafe_allow_html=True)
     
     if current >= len(questions):
-        st.session_state.page = 'results'
-        st.rerun()
+        go_to_page('results')
         return
     
     q = questions[current]
@@ -1560,19 +1580,14 @@ def quiz_page():
                 disabled = False
                 extra_class = ''
             
-            # Botó personalitzat amb HTML
-            letter = chr(65 + i)
-            btn_html = f"""
-            <div class="option-btn {extra_class} {'disabled' if disabled else ''}" 
-                 onclick="document.getElementById('opt_{i}').click()">
-                <span class="letter">{letter}</span>
-                {opt}
-            </div>
-            """
-            st.markdown(btn_html, unsafe_allow_html=True)
-            
-            # Botó ocult per a la lògica
-            if st.button(f"opt_{i}", key=f"opt_{i}", type=btn_type, disabled=disabled, use_container_width=True, label_visibility="collapsed"):
+            # Botó
+            if st.button(
+                f"{chr(65+i)}. {opt}",
+                key=f"opt_{current}_{i}",
+                use_container_width=True,
+                type=btn_type,
+                disabled=disabled
+            ):
                 if not is_answered:
                     st.session_state.answers.append(i)
                     if is_correct:
@@ -1585,7 +1600,14 @@ def quiz_page():
 # ==============================================================
 
 def results_page():
-    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">📊</div><div class="app-header-title">Resultats</div></div></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="app-header">
+        <div class="app-header-left">
+            <div class="app-header-icon">📊</div>
+            <div class="app-header-title">Resultats</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     total = len(st.session_state.questions)
     score = st.session_state.score
@@ -1608,45 +1630,47 @@ def results_page():
             is_correct = (user_ans == q['correct'])
             
             icon = '✅' if is_correct else '❌' if user_ans >= 0 else '⏭️'
-            color = '#00B894' if is_correct else '#FF6B6B' if user_ans >= 0 else '#FDCB6E'
             
-            st.markdown(f"""
-            <div class="result-item">
-                <span class="icon">{icon}</span>
-                <span class="question-text">{q['q']}</span>
-                <span class="answer-text">
-            """, unsafe_allow_html=True)
-            
-            if is_correct:
-                st.markdown(f'<span class="correct">✅ {q["options"][user_ans]}</span>', unsafe_allow_html=True)
-            elif user_ans >= 0:
-                st.markdown(f'<span class="wrong">❌ {q["options"][user_ans]}</span> → <span class="correct">✅ {q["options"][q["correct"]]}</span>', unsafe_allow_html=True)
-            else:
-                st.markdown('<span style="color:#636E72;">⏭️ No contestada</span>', unsafe_allow_html=True)
-            
-            st.markdown("</span></div>", unsafe_allow_html=True)
+            cols = st.columns([1, 4, 3])
+            with cols[0]:
+                st.markdown(f'<span style="font-size:1.1rem;">{icon}</span>', unsafe_allow_html=True)
+            with cols[1]:
+                st.markdown(f'<span style="font-weight:500;">{q["q"]}</span>', unsafe_allow_html=True)
+            with cols[2]:
+                if is_correct:
+                    st.markdown(f'<span style="color:#00B894;font-weight:600;">✅ {q["options"][user_ans]}</span>', unsafe_allow_html=True)
+                elif user_ans >= 0:
+                    st.markdown(f'<span style="color:#FF6B6B;font-weight:600;">❌ {q["options"][user_ans]}</span> → <span style="color:#00B894;font-weight:600;">✅ {q["options"][q["correct"]]}</span>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<span style="color:#636E72;">⏭️ No contestada</span>', unsafe_allow_html=True)
     
     # Botons
     col1, col2 = st.columns(2)
     with col1:
-        if st.button('🔄 Repetir', use_container_width=True, type="primary"):
+        if st.button('🔄 Repetir', use_container_width=True, type="primary", key="btn_repeat"):
             reset_quiz()
-            st.session_state.page = 'practica'
-            st.rerun()
+            go_to_page('practica')
     with col2:
-        if st.button('🏠 Inici', use_container_width=True):
+        if st.button('🏠 Inici', use_container_width=True, key="btn_home_from_results"):
             reset_quiz()
-            st.session_state.page = 'home'
-            st.rerun()
+            go_to_page('home')
 
 # ==============================================================
 # PÀGINA: TEORIA
 # ==============================================================
 
 def teoria_page():
-    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">📐</div><div class="app-header-title">Teoria de Matemàtiques</div></div></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="app-header">
+        <div class="app-header-left">
+            <div class="app-header-icon">📐</div>
+            <div class="app-header-title">Teoria de Matemàtiques</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown('<div class="btn-back" onclick="location.href=\'/\'">← Tornar al menú</div>', unsafe_allow_html=True)
+    if st.button("← Tornar al menú", key="back_from_teoria"):
+        go_to_page('home')
     
     with st.container():
         st.markdown('<div class="theory-container">', unsafe_allow_html=True)
@@ -1770,9 +1794,17 @@ def teoria_page():
 # ==============================================================
 
 def ortografia_page():
-    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">📝</div><div class="app-header-title">Regles Ortogràfiques</div></div></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="app-header">
+        <div class="app-header-left">
+            <div class="app-header-icon">📝</div>
+            <div class="app-header-title">Regles Ortogràfiques</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown('<div class="btn-back" onclick="location.href=\'/\'">← Tornar al menú</div>', unsafe_allow_html=True)
+    if st.button("← Tornar al menú", key="back_from_ortografia"):
+        go_to_page('home')
     
     with st.container():
         st.markdown('<div class="theory-container">', unsafe_allow_html=True)
@@ -1979,9 +2011,18 @@ def ortografia_page():
 # ==============================================================
 
 def memorization_page():
-    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">👁️</div><div class="app-header-title">Memorització Visual</div></div></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="app-header">
+        <div class="app-header-left">
+            <div class="app-header-icon">👁️</div>
+            <div class="app-header-title">Memorització Visual</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown('<div class="btn-back" onclick="location.href=\'/?page=practica\'">← Tornar a configuració</div>', unsafe_allow_html=True)
+    if st.button("← Tornar a configuració", key="back_from_mem"):
+        st.session_state.mem_phase = 'viewing'
+        go_to_page('practica')
     
     with st.container():
         st.markdown('<div class="memorization-container">', unsafe_allow_html=True)
@@ -2017,7 +2058,7 @@ def memorization_page():
                                       placeholder='Escriu aquí tot el que recordis de la imatge...',
                                       key='mem_user_text')
             
-            if st.button('🔍 Comparar', use_container_width=True, type="primary"):
+            if st.button('🔍 Comparar', use_container_width=True, type="primary", key="btn_compare"):
                 # Mostrar resultats
                 st.markdown('<h3 style="color:#2D3436;margin-top:1.5rem;">📊 Comparació</h3>', unsafe_allow_html=True)
                 
@@ -2043,9 +2084,8 @@ def memorization_page():
                 </div>
                 """, unsafe_allow_html=True)
                 
-                if st.button('🔄 Tornar a començar', use_container_width=True):
+                if st.button('🔄 Tornar a començar', use_container_width=True, key="btn_restart_mem"):
                     st.session_state.mem_phase = 'viewing'
-                    st.session_state.page = 'practica'
                     st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
@@ -2054,14 +2094,7 @@ def memorization_page():
 # ROUTER PRINCIPAL
 # ==============================================================
 
-# Llegir paràmetre de la URL
-query_params = st.query_params
-if 'page' in query_params:
-    page_param = query_params['page']
-    if page_param in ['teoria', 'ortografia', 'practica', 'memorization']:
-        st.session_state.page = page_param
-
-# Navegació
+# Navegació segons l'estat
 if st.session_state.page == 'home':
     home_page()
 elif st.session_state.page == 'practica':
