@@ -1,22 +1,1103 @@
 """
-PSICOTÈCNIC 3 EN 1 - Aplicació completa en Python amb Tkinter
-Conversió del codi JavaScript original
+PSICOTÈCNIC 3 EN 1 - App per a Streamlit
+Sense Tkinter - Funciona a Streamlit Cloud
 """
 
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import streamlit as st
 import random
 import time
-import json
-from PIL import Image, ImageTk
-import os
-import threading
+from PIL import Image
+import io
 
 # ==============================================================
-# BASE DE DADES DE PREGUNTES (COMPLETA)
+# CONFIGURACIÓ DE LA PÀGINA
+# ==============================================================
+st.set_page_config(
+    page_title="🧠 Psicotècnic 3 en 1",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# ==============================================================
+# CSS PERSONALITZAT
 # ==============================================================
 
-PROBLEM_BANK = {
+st.markdown("""
+<style>
+    /* ===== ESTILS GENERALS ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .stApp {
+        background: linear-gradient(135deg, #F0F4F8 0%, #E8EEF5 100%);
+    }
+    
+    /* ===== HEADER ===== */
+    .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(74,144,217,0.08);
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .app-header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .app-header-icon {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 15px rgba(74,144,217,0.25);
+    }
+    
+    .app-header-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.02em;
+    }
+    
+    .app-header-title span {
+        color: #2D3436;
+        -webkit-text-fill-color: #2D3436;
+    }
+    
+    .app-header-badge {
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 100px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        box-shadow: 0 2px 10px rgba(74,144,217,0.2);
+    }
+    
+    /* ===== PÀGINA D'INICI ===== */
+    .home-title {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2D3436;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+    
+    .home-subtitle {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #636E72;
+        margin-bottom: 2rem;
+    }
+    
+    .home-card {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.3);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .home-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4A90D9, #6A5ACD, #00B894);
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+    
+    .home-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 60px rgba(74,144,217,0.12);
+        border-color: rgba(74,144,217,0.2);
+    }
+    
+    .home-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .home-card .icon {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+        transition: transform 0.4s ease;
+    }
+    
+    .home-card:hover .icon {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    
+    .home-card .title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2D3436;
+        margin-bottom: 0.2rem;
+    }
+    
+    .home-card .desc {
+        font-size: 0.85rem;
+        color: #636E72;
+        line-height: 1.4;
+        max-width: 200px;
+    }
+    
+    .home-card .tag {
+        margin-top: 0.6rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.25rem 1rem;
+        border-radius: 100px;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        box-shadow: 0 2px 10px rgba(74,144,217,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .home-card:hover .tag {
+        box-shadow: 0 4px 20px rgba(74,144,217,0.3);
+        transform: scale(1.05);
+    }
+    
+    /* ===== BOTÓ TORNAR ===== */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.5rem;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 100px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #4A90D9;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        margin-bottom: 1.2rem;
+        text-decoration: none;
+    }
+    
+    .btn-back:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 20px rgba(74,144,217,0.12);
+        border-color: rgba(74,144,217,0.2);
+    }
+    
+    /* ===== INSTRUCCIONS ===== */
+    .instructions {
+        background: linear-gradient(135deg, rgba(240,246,254,0.9), rgba(232,240,250,0.9));
+        backdrop-filter: blur(10px);
+        padding: 1.2rem 1.8rem;
+        border-radius: 16px;
+        border: 1px solid rgba(74,144,217,0.12);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(74,144,217,0.04);
+    }
+    
+    .instructions::before {
+        content: '💡';
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 3.5rem;
+        opacity: 0.06;
+    }
+    
+    .instructions-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #3A7BC8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .instructions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.4rem 1.5rem;
+    }
+    
+    .instructions-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #2D3436;
+        line-height: 1.4;
+        padding: 0.1rem 0;
+    }
+    
+    .instructions-item .emoji {
+        font-size: 1rem;
+        min-width: 22px;
+        text-align: center;
+        margin-top: 1px;
+    }
+    
+    .instructions-item strong {
+        color: #3A7BC8;
+        font-weight: 600;
+    }
+    
+    .instructions-footer {
+        margin-top: 0.6rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid rgba(74,144,217,0.1);
+        font-size: 0.75rem;
+        color: #636E72;
+        text-align: center;
+        font-style: italic;
+    }
+    
+    .instructions-footer span {
+        display: inline-block;
+        background: rgba(255,255,255,0.8);
+        padding: 0.05rem 0.6rem;
+        border-radius: 100px;
+        font-weight: 500;
+        color: #4A90D9;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    /* ===== CONFIGURACIÓ ===== */
+    .config-container {
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.2rem 1.5rem;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin-bottom: 1.5rem;
+    }
+    
+    .config-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #636E72;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+    
+    /* ===== BOTONS DE MÒDUL ===== */
+    .mod-btn-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .mod-btn {
+        padding: 0.5rem 1.2rem;
+        border: 2px solid #DFE6E9;
+        border-radius: 100px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        color: #636E72;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .mod-btn:hover {
+        border-color: #4A90D9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(74,144,217,0.1);
+    }
+    
+    .mod-btn.active {
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 20px rgba(74,144,217,0.3);
+    }
+    
+    /* ===== NIVELLS ===== */
+    .level-group {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+    
+    .level-btn {
+        padding: 0.35rem 1rem;
+        border: 2px solid #DFE6E9;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        color: #636E72;
+    }
+    
+    .level-btn:hover {
+        border-color: #4A90D9;
+        transform: translateY(-2px);
+    }
+    
+    .level-btn.active {
+        border-color: #4A90D9;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        box-shadow: 0 4px 15px rgba(74,144,217,0.2);
+    }
+    
+    .level-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    
+    .level-dot.easy { background: #00B894; }
+    .level-dot.medium { background: #FDCB6E; }
+    .level-dot.hard { background: #FF6B6B; }
+    
+    /* ===== BOTÓ COMENÇAR ===== */
+    .btn-start {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.7rem 2rem;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        border: none;
+        border-radius: 100px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(74,144,217,0.3);
+        width: 100%;
+        text-align: center;
+    }
+    
+    .btn-start:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 35px rgba(74,144,217,0.4);
+    }
+    
+    .btn-start:active {
+        transform: scale(0.97);
+    }
+    
+    .btn-start:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    /* ===== PREGUNTA ===== */
+    .question-box {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        padding: 1.8rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin: 1rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .question-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4A90D9, #6A5ACD, #00B894);
+    }
+    
+    .question-box h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2D3436;
+        line-height: 1.5;
+    }
+    
+    .question-number {
+        display: inline-block;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.15rem 0.8rem;
+        border-radius: 100px;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 10px rgba(74,144,217,0.15);
+    }
+    
+    /* ===== OPCIONS ===== */
+    .option-btn {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        margin: 0.3rem 0;
+        border: 2px solid #DFE6E9;
+        border-radius: 12px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #2D3436;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .option-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #4A90D9, #6A5ACD);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .option-btn:hover:not(.disabled) {
+        border-color: #4A90D9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(74,144,217,0.08);
+    }
+    
+    .option-btn:hover:not(.disabled)::after {
+        transform: scaleX(0.3);
+    }
+    
+    .option-btn .letter {
+        display: inline-block;
+        background: #F5F8FC;
+        color: #636E72;
+        font-size: 0.65rem;
+        font-weight: 700;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .option-btn.selected {
+        border-color: #4A90D9;
+        background: rgba(74,144,217,0.06);
+        box-shadow: 0 0 0 4px rgba(74,144,217,0.08);
+    }
+    
+    .option-btn.selected .letter {
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        box-shadow: 0 2px 10px rgba(74,144,217,0.2);
+    }
+    
+    .option-btn.correct {
+        border-color: #00B894;
+        background: rgba(0,184,148,0.08);
+    }
+    
+    .option-btn.correct .letter {
+        background: #00B894;
+        color: white;
+    }
+    
+    .option-btn.wrong {
+        border-color: #FF6B6B;
+        background: rgba(255,107,107,0.08);
+    }
+    
+    .option-btn.wrong .letter {
+        background: #FF6B6B;
+        color: white;
+    }
+    
+    .option-btn.disabled {
+        opacity: 0.85;
+        cursor: default;
+        transform: none !important;
+    }
+    
+    /* ===== TIMER I PROGRÉS ===== */
+    .timer-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(10px);
+        padding: 0.5rem 1rem;
+        border-radius: 100px;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .timer-text {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #4A90D9;
+    }
+    
+    .timer-text.warning {
+        color: #FF6B6B;
+        animation: pulse 1s ease infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .progress-container {
+        flex: 1;
+        margin: 0 0.5rem;
+        height: 5px;
+        background: #DFE6E9;
+        border-radius: 4px;
+        overflow: hidden;
+        min-width: 60px;
+    }
+    
+    .progress-fill {
+        height: 5px;
+        background: linear-gradient(90deg, #4A90D9, #6A5ACD, #00B894);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    /* ===== RESULTATS ===== */
+    .results-container {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        text-align: center;
+    }
+    
+    .results-emoji {
+        font-size: 3.5rem;
+        display: block;
+        margin-bottom: 0.3rem;
+    }
+    
+    .results-score {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #2D3436;
+    }
+    
+    .results-score .total {
+        font-size: 1.5rem;
+        color: #636E72;
+        font-weight: 500;
+    }
+    
+    .results-percent {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4A90D9;
+        margin-top: 0.2rem;
+    }
+    
+    .results-detail {
+        margin-top: 1.2rem;
+        text-align: left;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+    
+    .results-detail::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .results-detail::-webkit-scrollbar-track {
+        background: #F5F8FC;
+        border-radius: 8px;
+    }
+    
+    .results-detail::-webkit-scrollbar-thumb {
+        background: #4A90D9;
+        border-radius: 8px;
+    }
+    
+    .result-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: 10px;
+        background: white;
+        border: 1px solid #DFE6E9;
+        margin-bottom: 0.3rem;
+        transition: all 0.3s ease;
+    }
+    
+    .result-item:hover {
+        border-color: #4A90D9;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    }
+    
+    .result-item .icon {
+        font-size: 1.1rem;
+        min-width: 26px;
+        text-align: center;
+    }
+    
+    .result-item .question-text {
+        flex: 1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #2D3436;
+    }
+    
+    .result-item .answer-text {
+        font-size: 0.8rem;
+        color: #636E72;
+        text-align: right;
+    }
+    
+    .result-item .answer-text .correct {
+        color: #00B894;
+        font-weight: 600;
+    }
+    
+    .result-item .answer-text .wrong {
+        color: #FF6B6B;
+        font-weight: 600;
+    }
+    
+    /* ===== BOTONS DE RESULTATS ===== */
+    .results-actions {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .results-actions .btn {
+        padding: 0.6rem 2rem;
+        border-radius: 100px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    .results-actions .btn-primary {
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        color: white;
+        box-shadow: 0 4px 20px rgba(74,144,217,0.3);
+    }
+    
+    .results-actions .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 35px rgba(74,144,217,0.4);
+    }
+    
+    .results-actions .btn-secondary {
+        background: rgba(99,110,114,0.1);
+        color: #636E72;
+        border: 2px solid #DFE6E9;
+    }
+    
+    .results-actions .btn-secondary:hover {
+        transform: translateY(-3px);
+        border-color: #4A90D9;
+        color: #4A90D9;
+    }
+    
+    /* ===== MEMORITZACIÓ ===== */
+    .memorization-container {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin-top: 1rem;
+    }
+    
+    .memorization-timer {
+        text-align: center;
+        font-size: 2.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4A90D9, #6A5ACD);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.8rem;
+    }
+    
+    .memorization-image {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    /* ===== TEORIA I ORTOGRAFIA ===== */
+    .theory-container {
+        background: rgba(255,255,255,0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 1.8rem;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin-top: 1rem;
+    }
+    
+    .theory-container h2 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2D3436;
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    
+    .theory-container h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #3A7BC8;
+        margin: 1rem 0 0.4rem 0;
+    }
+    
+    .theory-container .formula {
+        background: white;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        border: 1px solid #DFE6E9;
+        margin: 0.4rem 0;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    
+    .theory-container .example {
+        background: white;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #4A90D9;
+        margin: 0.4rem 0;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    
+    .theory-container .rule-box {
+        background: white;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        border-left: 4px solid #00B894;
+        margin: 0.4rem 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    
+    .theory-container .rule-box.warning {
+        border-left-color: #FDCB6E;
+    }
+    
+    .theory-container .rule-box.danger {
+        border-left-color: #FF6B6B;
+    }
+    
+    .theory-toc {
+        background: white;
+        padding: 0.8rem 1.2rem;
+        border-radius: 12px;
+        border: 1px solid #DFE6E9;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    
+    .theory-toc ul {
+        columns: 2;
+        column-gap: 1.5rem;
+        padding-left: 1.2rem;
+        margin: 0;
+    }
+    
+    .theory-toc li {
+        font-size: 0.85rem;
+        break-inside: avoid;
+        padding: 0.15rem 0;
+    }
+    
+    .theory-toc a {
+        color: #4A90D9;
+        text-decoration: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    
+    .theory-toc a:hover {
+        color: #3A7BC8;
+        text-decoration: underline;
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .app-header {
+            padding: 0.8rem 1rem;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+        
+        .app-header-title {
+            font-size: 1.1rem;
+        }
+        
+        .app-header-badge {
+            font-size: 0.55rem;
+            padding: 0.15rem 0.6rem;
+        }
+        
+        .app-header-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1.4rem;
+        }
+        
+        .home-title {
+            font-size: 1.5rem;
+        }
+        
+        .home-card {
+            min-height: 160px;
+            padding: 1.2rem 1rem;
+        }
+        
+        .home-card .icon {
+            font-size: 2.5rem;
+        }
+        
+        .home-card .title {
+            font-size: 1rem;
+        }
+        
+        .home-card .desc {
+            font-size: 0.75rem;
+        }
+        
+        .instructions-grid {
+            grid-template-columns: 1fr;
+            gap: 0.2rem;
+        }
+        
+        .instructions::before {
+            display: none;
+        }
+        
+        .config-container {
+            padding: 0.8rem 1rem;
+        }
+        
+        .mod-btn {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.8rem;
+            min-width: 60px;
+        }
+        
+        .level-btn {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.7rem;
+        }
+        
+        .results-score {
+            font-size: 2.2rem;
+        }
+        
+        .results-actions {
+            flex-direction: column;
+        }
+        
+        .results-actions .btn {
+            min-width: auto;
+        }
+        
+        .theory-toc ul {
+            columns: 1;
+        }
+        
+        .timer-container {
+            border-radius: 16px;
+            padding: 0.5rem 0.8rem;
+            justify-content: center;
+        }
+        
+        .progress-container {
+            width: 100%;
+            margin: 0.2rem 0;
+        }
+        
+        .question-box {
+            padding: 1rem;
+        }
+        
+        .question-box h3 {
+            font-size: 1rem;
+        }
+        
+        .option-btn {
+            font-size: 0.85rem;
+            padding: 0.6rem 0.8rem;
+        }
+        
+        .memorization-timer {
+            font-size: 2rem;
+        }
+        
+        .results-container {
+            padding: 1.2rem;
+        }
+        
+        .level-group {
+            justify-content: center;
+        }
+        
+        .btn-start {
+            font-size: 0.9rem;
+            padding: 0.5rem 1.5rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .home-card {
+            min-height: 140px;
+            padding: 0.8rem;
+        }
+        
+        .home-card .icon {
+            font-size: 2rem;
+        }
+        
+        .home-card .title {
+            font-size: 0.9rem;
+        }
+        
+        .home-card .desc {
+            font-size: 0.7rem;
+        }
+        
+        .mod-btn {
+            font-size: 0.65rem;
+            padding: 0.25rem 0.5rem;
+            min-width: 50px;
+        }
+        
+        .results-score {
+            font-size: 1.8rem;
+        }
+        
+        .results-emoji {
+            font-size: 2.5rem;
+        }
+        
+        .question-box h3 {
+            font-size: 0.9rem;
+        }
+        
+        .option-btn {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.6rem;
+        }
+        
+        .option-btn .letter {
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            font-size: 0.55rem;
+        }
+        
+        .result-item .question-text {
+            font-size: 0.75rem;
+        }
+        
+        .result-item .answer-text {
+            font-size: 0.7rem;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================================================
+# BASE DE DADES DE PREGUNTES
+# ==============================================================
+
+QUESTIONS = {
     'calcul': {
         'easy': [
             {'q': 'Quant és 8 + 3 × 2 ?', 'options': ['22', '14', '19', '16'], 'correct': 1},
@@ -154,1157 +1235,844 @@ PROBLEM_BANK = {
 # INSTRUCCIONS PER MÒDUL
 # ==============================================================
 
-MODULE_INSTRUCTIONS = {
-    'calcul': {
-        'title': '📐 Càlcul · Matemàtiques',
-        'items': [
-            ('➕', 'Resol <strong>operacions combinades</strong> amb prioritat'),
-            ('💯', 'Calcula <strong>percentatges</strong> i descomptes'),
-            ('📊', 'Aplica <strong>regles de 3</strong> directes i inverses'),
-            ('📏', 'Resol problemes de <strong>geometria</strong> i mitjanes')
-        ],
-        'footer': '⏱ Tens temps limitat · 3 nivells de dificultat'
-    },
-    'catala': {
-        'title': '📚 Català · Llengua',
-        'items': [
-            ('🔤', 'Tria el <strong>sinònim</strong> correcte de cada paraula'),
-            ('🔄', 'Identifica l\'<strong>antònim</strong> adequat'),
-            ('✍️', 'Detecta paraules <strong>mal escrites</strong>'),
-            ('🧩', 'Completa <strong>analogies</strong> i relaciona conceptes'),
-            ('📖', 'Tria la <strong>definició</strong> correcta de paraules')
-        ],
-        'footer': '⏱ Temps limitat · 3 nivells de dificultat · Basat en fonts oficials'
-    },
-    'memoritzacio': {
-        'title': '👁️ Memorització · Visual',
-        'items': [
-            ('🖼️', 'Carrega una <strong>imatge</strong> amb text a memoritzar'),
-            ('⏱️', 'Mira la imatge durant el <strong>temps indicat</strong>'),
-            ('📝', 'Pren <strong>notes</strong> mentre mires la imatge'),
-            ('✍️', 'Escriu tot el que <strong>recordes</strong> de la imatge'),
-            ('🔍', 'Compara el teu text amb la <strong>imatge original</strong>')
-        ],
-        'footer': '👀 Entrena la teva memòria visual i capacitat de retenció'
-    }
-}
-
-# ==============================================================
-# CLASSE PRINCIPAL DE L'APLICACIÓ
-# ==============================================================
-
-class PsicotecnicApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("🧠 Psicotècnic 3 en 1")
-        self.root.geometry("1000x750")
-        self.root.configure(bg='#F5F8FC')
-        self.root.minsize(800, 600)
-        
-        # Estat
-        self.current_module = 'calcul'
-        self.current_level = 'easy'
-        self.questions = []
-        self.user_answers = []
-        self.current_index = 0
-        self.score = 0
-        self.total_questions = 0
-        self.is_finished = False
-        self.is_answered = False
-        self.timer_running = False
-        self.time_left = 120
-        self.timer_id = None
-        
-        # Estat per a memorització
-        self.image_path = None
-        self.image_url = None
-        self.notes = ''
-        self.memorization_phase = 'idle'  # idle | memorization | writing | results
-        
-        # Configuració colors
-        self.colors = {
-            'primary': '#4A90D9',
-            'primary_dark': '#3A7BC8',
-            'primary_light': '#7BB3E6',
-            'success': '#00B894',
-            'danger': '#FF6B6B',
-            'warning': '#FDCB6E',
-            'bg': '#F5F8FC',
-            'white': '#FFFFFF',
-            'text': '#2D3436',
-            'text_light': '#636E72',
-            'border': '#DFE6E9'
+def get_module_instructions(module):
+    instructions = {
+        'calcul': {
+            'title': '📐 Càlcul · Matemàtiques',
+            'items': [
+                ('➕', 'Resol <strong>operacions combinades</strong> amb prioritat'),
+                ('💯', 'Calcula <strong>percentatges</strong> i descomptes'),
+                ('📊', 'Aplica <strong>regles de 3</strong> directes i inverses'),
+                ('📏', 'Resol problemes de <strong>geometria</strong> i mitjanes')
+            ],
+            'footer': '⏱ Tens temps limitat · 3 nivells de dificultat'
+        },
+        'catala': {
+            'title': '📚 Català · Llengua',
+            'items': [
+                ('🔤', 'Tria el <strong>sinònim</strong> correcte de cada paraula'),
+                ('🔄', 'Identifica l\'<strong>antònim</strong> adequat'),
+                ('✍️', 'Detecta paraules <strong>mal escrites</strong>'),
+                ('🧩', 'Completa <strong>analogies</strong> i relaciona conceptes'),
+                ('📖', 'Tria la <strong>definició</strong> correcta de paraules')
+            ],
+            'footer': '⏱ Temps limitat · 3 nivells de dificultat · Basat en fonts oficials'
+        },
+        'memoritzacio': {
+            'title': '👁️ Memorització · Visual',
+            'items': [
+                ('🖼️', 'Carrega una <strong>imatge</strong> amb text a memoritzar'),
+                ('⏱️', 'Mira la imatge durant el <strong>temps indicat</strong>'),
+                ('📝', 'Pren <strong>notes</strong> mentre mires la imatge'),
+                ('✍️', 'Escriu tot el que <strong>recordes</strong> de la imatge'),
+                ('🔍', 'Compara el teu text amb la <strong>imatge original</strong>')
+            ],
+            'footer': '👀 Entrena la teva memòria visual i capacitat de retenció'
         }
-        
-        # Crear interfície
-        self.create_widgets()
-        
-        # Iniciar en mode pràctica
-        self.current_page = 'home'
-        self.show_home()
+    }
+    return instructions.get(module, instructions['calcul'])
+
+# ==============================================================
+# FUNCIONS AUXILIARS
+# ==============================================================
+
+def shuffle_array(arr):
+    for i in range(len(arr) - 1, 0, -1):
+        j = random.randint(0, i)
+        arr[i], arr[j] = arr[j], arr[i]
+    return arr
+
+def select_random_questions(n, bank):
+    bank_copy = bank.copy()
+    shuffle_array(bank_copy)
+    if n <= len(bank_copy):
+        return bank_copy[:n]
+    selected = bank_copy.copy()
+    while len(selected) < n:
+        extra = bank_copy[random.randint(0, len(bank_copy) - 1)]
+        selected.append(extra.copy())
+    return selected
+
+def get_level_label(level):
+    labels = {'easy': 'Fàcil', 'medium': 'Mitjà', 'hard': 'Difícil'}
+    return labels.get(level, 'Fàcil')
+
+# ==============================================================
+# INICIALITZACIÓ DE L'ESTAT
+# ==============================================================
+
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+if 'module' not in st.session_state:
+    st.session_state.module = 'calcul'
+if 'level' not in st.session_state:
+    st.session_state.level = 'easy'
+if 'questions' not in st.session_state:
+    st.session_state.questions = []
+if 'current_q' not in st.session_state:
+    st.session_state.current_q = 0
+if 'score' not in st.session_state:
+    st.session_state.score = 0
+if 'answers' not in st.session_state:
+    st.session_state.answers = []
+if 'total' not in st.session_state:
+    st.session_state.total = 0
+if 'time_limit' not in st.session_state:
+    st.session_state.time_limit = 120
+if 'timer_start' not in st.session_state:
+    st.session_state.timer_start = None
+if 'image_file' not in st.session_state:
+    st.session_state.image_file = None
+if 'mem_phase' not in st.session_state:
+    st.session_state.mem_phase = 'viewing'
+if 'mem_notes' not in st.session_state:
+    st.session_state.mem_notes = ''
+if 'view_time' not in st.session_state:
+    st.session_state.view_time = 30
+if 'selected_option' not in st.session_state:
+    st.session_state.selected_option = None
+
+# ==============================================================
+# FUNCIONS DE NAVEGACIÓ
+# ==============================================================
+
+def go_to_page(page):
+    st.session_state.page = page
+    st.rerun()
+
+def reset_quiz():
+    st.session_state.questions = []
+    st.session_state.current_q = 0
+    st.session_state.score = 0
+    st.session_state.answers = []
+    st.session_state.total = 0
+    st.session_state.time_limit = 120
+    st.session_state.timer_start = None
+    st.session_state.selected_option = None
+
+# ==============================================================
+# PÀGINA D'INICI
+# ==============================================================
+
+def home_page():
+    st.markdown('<div class="home-title">🎯 Què vols practicar?</div>', unsafe_allow_html=True)
+    st.markdown('<div class="home-subtitle">Selecciona una opció per començar</div>', unsafe_allow_html=True)
     
-    # ==============================================================
-    # CREACIÓ DE LA INTERFÍCIE
-    # ==============================================================
+    col1, col2, col3 = st.columns(3)
     
-    def create_widgets(self):
-        """Crea tots els widgets de l'aplicació"""
-        
-        # Frame principal
-        self.main_frame = tk.Frame(self.root, bg=self.colors['bg'])
-        self.main_frame.pack(fill='both', expand=True, padx=20, pady=10)
-        
-        # === HEADER ===
-        self.header = tk.Frame(self.main_frame, bg='white', height=70)
-        self.header.pack(fill='x', pady=(0, 15))
-        self.header.pack_propagate(False)
-        
-        header_left = tk.Frame(self.header, bg='white')
-        header_left.pack(side='left', padx=20, fill='y')
-        
-        self.header_icon = tk.Label(header_left, text='🧠', font=('Inter', 24), bg='white')
-        self.header_icon.pack(side='left', padx=(0, 10))
-        
-        self.header_title = tk.Label(header_left, text='Psicotècnic 3 en 1', 
-                                     font=('Inter', 18, 'bold'), bg='white', 
-                                     fg=self.colors['text'])
-        self.header_title.pack(side='left')
-        
-        # === CONTENIDOR PRINCIPAL ===
-        self.content_frame = tk.Frame(self.main_frame, bg='white', 
-                                      relief='flat', bd=1)
-        self.content_frame.pack(fill='both', expand=True, pady=10)
-        
-        # Aquest frame contindrà tot el contingut dinàmic
-        self.dynamic_frame = tk.Frame(self.content_frame, bg='white')
-        self.dynamic_frame.pack(fill='both', expand=True, padx=20, pady=15)
+    cards = [
+        ('📝', 'Pràctica', 'Exercicis interactius de Càlcul, Català i Memorització', 'practica', '▶ Començar'),
+        ('📐', 'Matemàtiques', 'Conceptes i fórmules per resoldre els exercicis', 'teoria', '📖 Consultar'),
+        ('📝', 'Ortografia', 'Regles i normes per escriure correctament en català', 'ortografia', '📖 Consultar')
+    ]
     
-    # ==============================================================
-    # NAVEGACIÓ ENTRE PÀGINES
-    # ==============================================================
+    for col, (icon, title, desc, page, tag) in zip([col1, col2, col3], cards):
+        with col:
+            st.markdown(f"""
+            <div class="home-card" onclick="location.href='?page={page}'">
+                <div class="icon">{icon}</div>
+                <div class="title">{title}</div>
+                <div class="desc">{desc}</div>
+                <div class="tag">{tag}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+# ==============================================================
+# PÀGINA: PRÀCTICA
+# ==============================================================
+
+def practica_page():
+    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">🎯</div><div class="app-header-title">Pràctica</div></div></div>', unsafe_allow_html=True)
     
-    def clear_content(self):
-        """Neteja el contingut del frame dinàmic"""
-        for widget in self.dynamic_frame.winfo_children():
-            widget.destroy()
+    # Botó tornar
+    st.markdown('<div class="btn-back" onclick="location.href=\'/\'">← Tornar al menú</div>', unsafe_allow_html=True)
     
-    def show_home(self):
-        """Mostra la pàgina d'inici"""
-        self.clear_content()
-        self.current_page = 'home'
-        
-        # Títol
-        title = tk.Label(self.dynamic_frame, text='🎯 Què vols practicar?',
-                         font=('Inter', 20, 'bold'), bg='white', fg=self.colors['text'])
-        title.pack(pady=(10, 5))
-        
-        subtitle = tk.Label(self.dynamic_frame, text='Selecciona una opció per començar',
-                            font=('Inter', 14), bg='white', fg=self.colors['text_light'])
-        subtitle.pack(pady=(0, 20))
-        
-        # Grid de cards
-        grid_frame = tk.Frame(self.dynamic_frame, bg='white')
-        grid_frame.pack(fill='both', expand=True)
-        
-        cards = [
-            ('📝', 'Pràctica', 'Exercicis interactius de Càlcul, Català i Memorització', 'practica'),
-            ('📐', 'Matemàtiques', 'Conceptes i fórmules per resoldre els exercicis', 'teoria'),
-            ('📝', 'Ortografia', 'Regles i normes per escriure correctament en català', 'ortografia')
-        ]
-        
-        for i, (icon, title_text, desc, page) in enumerate(cards):
-            frame = tk.Frame(grid_frame, bg='white', relief='ridge', bd=1)
-            frame.grid(row=0, column=i, padx=10, pady=10, sticky='nsew')
-            grid_frame.grid_columnconfigure(i, weight=1)
-            
-            # Icona
-            icon_label = tk.Label(frame, text=icon, font=('Inter', 36), bg='white')
-            icon_label.pack(pady=(15, 5))
-            
-            # Títol
-            title_label = tk.Label(frame, text=title_text, font=('Inter', 16, 'bold'),
-                                   bg='white', fg=self.colors['text'])
-            title_label.pack()
-            
-            # Descripció
-            desc_label = tk.Label(frame, text=desc, font=('Inter', 11),
-                                  bg='white', fg=self.colors['text_light'],
-                                  wraplength=200, justify='center')
-            desc_label.pack(pady=(5, 10))
-            
-            # Botó
-            btn = tk.Button(frame, text='▶ Començar' if page == 'practica' else '📖 Consultar',
-                            bg=self.colors['primary'], fg='white',
-                            font=('Inter', 10, 'bold'), relief='flat',
-                            padx=20, pady=5, cursor='hand2',
-                            command=lambda p=page: self.go_to_page(p))
-            btn.pack(pady=(0, 15))
-            
-            # Efecte hover
-            def on_enter(e, f=frame):
-                f.configure(bg='#F8FAFC')
-            def on_leave(e, f=frame):
-                f.configure(bg='white')
-            
-            frame.bind('<Enter>', on_enter)
-            frame.bind('<Leave>', on_leave)
+    # Instruccions
+    instr = get_module_instructions(st.session_state.module)
     
-    def go_to_page(self, page):
-        """Navega a una pàgina específica"""
-        if page == 'practica':
-            self.show_practica()
-        elif page == 'teoria':
-            self.show_teoria()
-        elif page == 'ortografia':
-            self.show_ortografia()
-        elif page == 'home':
-            self.show_home()
+    st.markdown(f"""
+    <div class="instructions">
+        <div class="instructions-title">💡 {instr['title']}</div>
+        <div class="instructions-grid">
+    """, unsafe_allow_html=True)
     
-    # ==============================================================
-    # PÀGINA: PRÀCTICA
-    # ==============================================================
+    for emoji, text in instr['items']:
+        st.markdown(f"""
+        <div class="instructions-item">
+            <span class="emoji">{emoji}</span>
+            <span>{text}</span>
+        </div>
+        """, unsafe_allow_html=True)
     
-    def show_practica(self):
-        """Mostra la pàgina de pràctica"""
-        self.clear_content()
-        self.current_page = 'practica'
-        
-        # Botó tornar
-        self.create_back_button()
-        
-        # Instruccions
-        self.create_instructions('calcul')
-        
-        # Configuració
-        self.create_config()
-        
-        # Zona de preguntes
-        self.create_question_area()
+    st.markdown(f"""
+        </div>
+        <div class="instructions-footer">{instr['footer']}</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    def create_back_button(self):
-        """Crea el botó per tornar enrere"""
-        back_frame = tk.Frame(self.dynamic_frame, bg='white')
-        back_frame.pack(fill='x', pady=(0, 10))
-        
-        btn = tk.Button(back_frame, text='← Tornar al menú',
-                        bg='white', fg=self.colors['primary'],
-                        font=('Inter', 11, 'bold'), relief='flat',
-                        cursor='hand2', command=lambda: self.go_to_page('home'))
-        btn.pack(side='left')
-    
-    def create_instructions(self, module):
-        """Crea les instruccions per al mòdul actual"""
-        instr_frame = tk.Frame(self.dynamic_frame, bg='#F0F6FE', 
-                               relief='flat', bd=1)
-        instr_frame.pack(fill='x', pady=(0, 15), ipady=10, ipadx=10)
-        
-        data = MODULE_INSTRUCTIONS.get(module, MODULE_INSTRUCTIONS['calcul'])
-        
-        # Títol
-        title = tk.Label(instr_frame, text=f'💡 {data["title"]}',
-                         font=('Inter', 12, 'bold'), bg='#F0F6FE',
-                         fg=self.colors['primary_dark'])
-        title.pack(anchor='w', padx=10, pady=(5, 5))
-        
-        # Items en grid
-        grid_frame = tk.Frame(instr_frame, bg='#F0F6FE')
-        grid_frame.pack(fill='x', padx=10, pady=5)
-        
-        for i, (emoji, text) in enumerate(data['items']):
-            row = i // 2
-            col = i % 2
-            item_frame = tk.Frame(grid_frame, bg='#F0F6FE')
-            item_frame.grid(row=row, column=col, sticky='w', padx=5, pady=2)
-            
-            emoji_label = tk.Label(item_frame, text=emoji, font=('Inter', 12),
-                                   bg='#F0F6FE')
-            emoji_label.pack(side='left')
-            
-            # Eliminar etiquetes HTML i posar en negreta
-            clean_text = text.replace('<strong>', '').replace('</strong>', '')
-            text_label = tk.Label(item_frame, text=clean_text,
-                                  font=('Inter', 10), bg='#F0F6FE',
-                                  fg=self.colors['text'])
-            text_label.pack(side='left', padx=(5, 0))
-        
-        # Footer
-        footer = tk.Label(instr_frame, text=data['footer'],
-                          font=('Inter', 9, 'italic'), bg='#F0F6FE',
-                          fg=self.colors['text_light'])
-        footer.pack(anchor='w', padx=10, pady=(5, 0))
-    
-    def create_config(self):
-        """Crea la barra de configuració"""
-        config_frame = tk.Frame(self.dynamic_frame, bg=self.colors['bg'],
-                                relief='flat', bd=1)
-        config_frame.pack(fill='x', pady=(0, 15), ipady=10, ipadx=10)
+    # Configuració
+    with st.container():
+        st.markdown('<div class="config-container">', unsafe_allow_html=True)
         
         # Selector de mòdul
-        module_frame = tk.Frame(config_frame, bg=self.colors['bg'])
-        module_frame.pack(side='left', padx=5)
+        st.markdown('<span class="config-label">📚 Mòdul</span>', unsafe_allow_html=True)
+        mod_cols = st.columns(3)
+        modules = ['calcul', 'catala', 'memoritzacio']
+        module_labels = {'calcul': '📐 Càlcul', 'catala': '📚 Català', 'memoritzacio': '👁️ Memorització'}
         
-        tk.Label(module_frame, text='Mòdul:', font=('Inter', 10, 'bold'),
-                 bg=self.colors['bg'], fg=self.colors['text_light']).pack(side='left', padx=(0, 5))
+        for i, mod in enumerate(modules):
+            with mod_cols[i]:
+                if st.button(
+                    module_labels[mod],
+                    use_container_width=True,
+                    type="primary" if st.session_state.module == mod else "secondary"
+                ):
+                    st.session_state.module = mod
+                    st.rerun()
         
-        modules = [
-            ('📐 Càlcul', 'calcul'),
-            ('📚 Català', 'catala'),
-            ('👁️ Memorització', 'memoritzacio')
-        ]
-        
-        self.module_buttons = {}
-        for text, module_id in modules:
-            btn = tk.Button(module_frame, text=text,
-                            bg=self.colors['primary'] if module_id == self.current_module else 'white',
-                            fg='white' if module_id == self.current_module else self.colors['text'],
-                            font=('Inter', 9), relief='flat',
-                            padx=12, pady=4, cursor='hand2',
-                            command=lambda m=module_id: self.change_module(m))
-            btn.pack(side='left', padx=2)
-            self.module_buttons[module_id] = btn
-        
-        # Separador
-        tk.Frame(config_frame, bg=self.colors['border'], width=2, height=30).pack(side='left', padx=10)
-        
-        # Configuració per a cada mòdul
-        self.config_items_frame = tk.Frame(config_frame, bg=self.colors['bg'])
-        self.config_items_frame.pack(side='left', padx=5)
-        
-        self.update_config_items()
-        
-        # Botó començar
-        self.start_btn = tk.Button(config_frame, text='▶ Començar',
-                                   bg=self.colors['primary'], fg='white',
-                                   font=('Inter', 11, 'bold'), relief='flat',
-                                   padx=25, pady=6, cursor='hand2',
-                                   command=self.start_quiz)
-        self.start_btn.pack(side='right', padx=5)
-    
-    def update_config_items(self):
-        """Actualitza els elements de configuració segons el mòdul"""
-        for widget in self.config_items_frame.winfo_children():
-            widget.destroy()
-        
-        if self.current_module == 'memoritzacio':
-            # Configuració per a memorització
-            # Imatge
-            img_frame = tk.Frame(self.config_items_frame, bg=self.colors['bg'])
-            img_frame.pack(side='left', padx=5)
-            
-            tk.Label(img_frame, text='Imatge:', font=('Inter', 9, 'bold'),
-                     bg=self.colors['bg'], fg=self.colors['text_light']).pack(side='left')
-            
-            self.image_btn = tk.Button(img_frame, text='📂 Seleccionar',
-                                       bg=self.colors['primary'], fg='white',
-                                       font=('Inter', 8), relief='flat',
-                                       padx=10, pady=3, cursor='hand2',
-                                       command=self.select_image)
-            self.image_btn.pack(side='left', padx=(5, 0))
-            
-            self.image_label = tk.Label(img_frame, text='Cap imatge',
-                                        font=('Inter', 8), bg=self.colors['bg'],
-                                        fg=self.colors['text_light'])
-            self.image_label.pack(side='left', padx=(5, 0))
-            
-            # Temps de visualització
-            time_frame = tk.Frame(self.config_items_frame, bg=self.colors['bg'])
-            time_frame.pack(side='left', padx=10)
-            
-            tk.Label(time_frame, text='Visualització (s):', font=('Inter', 9, 'bold'),
-                     bg=self.colors['bg'], fg=self.colors['text_light']).pack(side='left')
-            
-            self.view_entry = tk.Entry(time_frame, width=5, font=('Inter', 10),
-                                       relief='solid', bd=1, justify='center')
-            self.view_entry.insert(0, '30')
-            self.view_entry.pack(side='left', padx=(5, 0))
-        
-        else:
-            # Configuració per a Càlcul i Català
-            # Preguntes
-            q_frame = tk.Frame(self.config_items_frame, bg=self.colors['bg'])
-            q_frame.pack(side='left', padx=5)
-            
-            tk.Label(q_frame, text='Preguntes:', font=('Inter', 9, 'bold'),
-                     bg=self.colors['bg'], fg=self.colors['text_light']).pack(side='left')
-            
-            self.q_entry = tk.Entry(q_frame, width=5, font=('Inter', 10),
-                                    relief='solid', bd=1, justify='center')
-            self.q_entry.insert(0, '10')
-            self.q_entry.pack(side='left', padx=(5, 0))
-            
-            # Temps
-            time_frame = tk.Frame(self.config_items_frame, bg=self.colors['bg'])
-            time_frame.pack(side='left', padx=10)
-            
-            tk.Label(time_frame, text='Temps (min):', font=('Inter', 9, 'bold'),
-                     bg=self.colors['bg'], fg=self.colors['text_light']).pack(side='left')
-            
-            self.t_entry = tk.Entry(time_frame, width=5, font=('Inter', 10),
-                                    relief='solid', bd=1, justify='center')
-            self.t_entry.insert(0, '2')
-            self.t_entry.pack(side='left', padx=(5, 0))
+        if st.session_state.module != 'memoritzacio':
+            # Preguntes i temps
+            col_a, col_b = st.columns(2)
+            with col_a:
+                num_q = st.number_input('📝 Preguntes', min_value=1, max_value=30, value=10, key="num_questions")
+            with col_b:
+                minutes = st.number_input('⏱️ Temps (min)', min_value=1, max_value=30, value=2, key="time_minutes")
             
             # Nivell
-            level_frame = tk.Frame(self.config_items_frame, bg=self.colors['bg'])
-            level_frame.pack(side='left', padx=10)
+            st.markdown('<span class="config-label">📊 Nivell</span>', unsafe_allow_html=True)
+            level_cols = st.columns(3)
+            levels = ['easy', 'medium', 'hard']
+            level_labels = {'easy': '🟢 Fàcil', 'medium': '🟡 Mitjà', 'hard': '🔴 Difícil'}
             
-            tk.Label(level_frame, text='Nivell:', font=('Inter', 9, 'bold'),
-                     bg=self.colors['bg'], fg=self.colors['text_light']).pack(side='left')
+            for i, level in enumerate(levels):
+                with level_cols[i]:
+                    if st.button(
+                        level_labels[level],
+                        use_container_width=True,
+                        type="primary" if st.session_state.level == level else "secondary"
+                    ):
+                        st.session_state.level = level
+                        st.rerun()
             
-            self.level_var = tk.StringVar(value='easy')
-            levels = [('🟢 Fàcil', 'easy'), ('🟡 Mitjà', 'medium'), ('🔴 Difícil', 'hard')]
-            
-            for text, value in levels:
-                rb = tk.Radiobutton(level_frame, text=text, variable=self.level_var,
-                                    value=value, bg=self.colors['bg'],
-                                    font=('Inter', 8), selectcolor='white',
-                                    activebackground=self.colors['bg'])
-                rb.pack(side='left', padx=3)
-    
-    def change_module(self, module):
-        """Canvia el mòdul actiu"""
-        self.current_module = module
-        self.reset_state()
+            # Botó començar
+            if st.button('▶ Començar', use_container_width=True, type="primary"):
+                bank = QUESTIONS.get(st.session_state.module, {}).get(st.session_state.level, [])
+                if bank:
+                    selected = select_random_questions(num_q, bank)
+                    st.session_state.questions = selected
+                    st.session_state.total = len(selected)
+                    st.session_state.current_q = 0
+                    st.session_state.score = 0
+                    st.session_state.answers = []
+                    st.session_state.selected_option = None
+                    st.session_state.time_limit = minutes * 60
+                    st.session_state.timer_start = time.time()
+                    st.session_state.page = 'quiz'
+                    st.rerun()
+                else:
+                    st.warning('No hi ha preguntes per a aquest mòdul i nivell.')
         
-        # Actualitzar botons
-        for mod_id, btn in self.module_buttons.items():
-            if mod_id == module:
-                btn.configure(bg=self.colors['primary'], fg='white')
+        else:
+            # Memorització
+            uploaded_file = st.file_uploader("🖼️ Selecciona una imatge", type=['png', 'jpg', 'jpeg', 'gif'])
+            if uploaded_file:
+                st.session_state.image_file = uploaded_file
+                st.image(uploaded_file, caption='Imatge carregada', use_container_width=True)
+            
+            view_time = st.number_input('⏱️ Visualització (s)', min_value=5, max_value=300, value=30, key="view_time_input")
+            st.session_state.view_time = view_time
+            
+            if st.button('▶ Començar memorització', use_container_width=True, type="primary"):
+                if st.session_state.image_file:
+                    st.session_state.page = 'memorization'
+                    st.session_state.mem_phase = 'viewing'
+                    st.rerun()
+                else:
+                    st.warning('Si us plau, selecciona una imatge primer.')
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ==============================================================
+# PÀGINA: QUIZ
+# ==============================================================
+
+def quiz_page():
+    questions = st.session_state.questions
+    current = st.session_state.current_q
+    
+    # Timer
+    timer_html = '<div class="timer-container">'
+    if st.session_state.timer_start:
+        elapsed = time.time() - st.session_state.timer_start
+        remaining = max(0, st.session_state.time_limit - elapsed)
+        mins = int(remaining // 60)
+        secs = int(remaining % 60)
+        warning_class = 'warning' if remaining < 10 else ''
+        timer_html += f'<span class="timer-text {warning_class}">⏱ {mins:02d}:{secs:02d}</span>'
+        
+        if remaining <= 0:
+            st.session_state.page = 'results'
+            st.rerun()
+            return
+    timer_html += '<div class="progress-container"><div class="progress-fill" style="width:' + str((current / len(questions) * 100) if questions else 0) + '%;"></div></div>'
+    timer_html += f'<span style="font-size:0.8rem;color:#636E72;font-weight:500;">{current}/{len(questions)}</span>'
+    timer_html += '</div>'
+    st.markdown(timer_html, unsafe_allow_html=True)
+    
+    if current >= len(questions):
+        st.session_state.page = 'results'
+        st.rerun()
+        return
+    
+    q = questions[current]
+    
+    # Pregunta
+    st.markdown(f"""
+    <div class="question-box">
+        <span class="question-number">Pregunta {current + 1}</span>
+        <h3>{q['q']}</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Opcions
+    cols = st.columns(2)
+    
+    # Determinar si ja s'ha respost
+    is_answered = len(st.session_state.answers) > current
+    
+    for i, opt in enumerate(q['options']):
+        col = cols[i % 2]
+        with col:
+            is_selected = is_answered and st.session_state.answers[current] == i
+            is_correct = i == q['correct']
+            
+            if is_answered:
+                if is_correct:
+                    btn_type = "success"
+                elif is_selected:
+                    btn_type = "danger"
+                else:
+                    btn_type = "secondary"
+                disabled = True
+                extra_class = 'correct' if is_correct else ('wrong' if is_selected else '')
             else:
-                btn.configure(bg='white', fg=self.colors['text'])
-        
-        # Actualitzar config
-        self.update_config_items()
-        
-        # Actualitzar instruccions
-        self.create_instructions(module)
+                btn_type = "secondary"
+                disabled = False
+                extra_class = ''
+            
+            # Botó personalitzat amb HTML
+            letter = chr(65 + i)
+            btn_html = f"""
+            <div class="option-btn {extra_class} {'disabled' if disabled else ''}" 
+                 onclick="document.getElementById('opt_{i}').click()">
+                <span class="letter">{letter}</span>
+                {opt}
+            </div>
+            """
+            st.markdown(btn_html, unsafe_allow_html=True)
+            
+            # Botó ocult per a la lògica
+            if st.button(f"opt_{i}", key=f"opt_{i}", type=btn_type, disabled=disabled, use_container_width=True, label_visibility="collapsed"):
+                if not is_answered:
+                    st.session_state.answers.append(i)
+                    if is_correct:
+                        st.session_state.score += 1
+                    st.session_state.current_q += 1
+                    st.rerun()
+
+# ==============================================================
+# PÀGINA: RESULTATS
+# ==============================================================
+
+def results_page():
+    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">📊</div><div class="app-header-title">Resultats</div></div></div>', unsafe_allow_html=True)
     
-    def select_image(self):
-        """Selecciona una imatge per a memorització"""
-        file_path = filedialog.askopenfilename(
-            title='Selecciona una imatge',
-            filetypes=[('Imatges', '*.png *.jpg *.jpeg *.gif *.bmp'), ('Tots els fitxers', '*.*')]
-        )
-        if file_path:
-            self.image_path = file_path
-            self.image_label.config(text=os.path.basename(file_path), fg=self.colors['success'])
+    total = len(st.session_state.questions)
+    score = st.session_state.score
+    percent = round((score / total) * 100) if total > 0 else 0
     
-    # ==============================================================
-    # ZONA DE PREGUNTES
-    # ==============================================================
+    emoji = '🌟' if percent >= 90 else '😊' if percent >= 70 else '🤔' if percent >= 50 else '📚' if percent >= 30 else '😢'
     
-    def create_question_area(self):
-        """Crea l'àrea on es mostraran les preguntes"""
-        # Aquesta àrea es neteja i omple dinàmicament
-        self.question_frame = tk.Frame(self.dynamic_frame, bg='white',
-                                       relief='flat', bd=1)
-        self.question_frame.pack(fill='both', expand=True)
-        
-        self.question_label = tk.Label(self.question_frame,
-                                       text='Selecciona un mòdul i prem "Començar"',
-                                       font=('Inter', 14), bg='white',
-                                       fg=self.colors['text_light'])
-        self.question_label.pack(pady=50)
-        
-        self.options_frame = tk.Frame(self.question_frame, bg='white')
-        self.options_frame.pack(pady=10)
-        
-        # Feedback bar
-        self.feedback_frame = tk.Frame(self.question_frame, bg='white')
-        self.feedback_frame.pack(fill='x', pady=10)
-        
-        self.progress_label = tk.Label(self.feedback_frame, text='0 / 0',
-                                       font=('Inter', 10), bg='white',
-                                       fg=self.colors['text_light'])
-        self.progress_label.pack(side='left', padx=10)
-        
-        self.timer_label = tk.Label(self.feedback_frame, text='⏱ 0:00',
-                                    font=('Inter', 10), bg='white',
-                                    fg=self.colors['text'])
-        self.timer_label.pack(side='right', padx=10)
+    st.markdown(f"""
+    <div class="results-container">
+        <span class="results-emoji">{emoji}</span>
+        <div class="results-score">{score} <span class="total">/ {total}</span></div>
+        <div class="results-percent">{percent}%</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # ==============================================================
-    # LÒGICA DEL QUIZ
-    # ==============================================================
-    
-    def reset_state(self):
-        """Reinicia l'estat de l'aplicació"""
-        if self.timer_id:
-            self.root.after_cancel(self.timer_id)
-            self.timer_id = None
-        self.timer_running = False
-        self.is_finished = False
-        self.current_index = 0
-        self.user_answers = []
-        self.questions = []
-        self.score = 0
-        self.total_questions = 0
-        self.is_answered = False
-        
-        # Netejar zona de preguntes
-        self.clear_question_area()
-    
-    def clear_question_area(self):
-        """Neteja l'àrea de preguntes"""
-        for widget in self.options_frame.winfo_children():
-            widget.destroy()
-        self.question_label.config(text='Selecciona un mòdul i prem "Començar"')
-        self.progress_label.config(text='0 / 0')
-        self.timer_label.config(text='⏱ 0:00')
-        self.start_btn.config(state='normal')
-    
-    def start_quiz(self):
-        """Inicia el qüestionari"""
-        if self.current_module == 'memoritzacio':
-            self.start_memorization()
-            return
-        
-        try:
-            num_q = int(self.q_entry.get())
-            minutes = int(self.t_entry.get())
-            level = self.level_var.get()
-        except:
-            messagebox.showerror('Error', 'Si us plau, introdueix números vàlids')
-            return
-        
-        # Seleccionar preguntes
-        bank = PROBLEM_BANK[self.current_module][level]
-        self.questions = random.sample(bank, min(num_q, len(bank)))
-        self.total_questions = len(self.questions)
-        self.user_answers = []
-        self.current_index = 0
-        self.score = 0
-        self.is_finished = False
-        
-        # Deshabilitar botó start
-        self.start_btn.config(state='disabled')
-        
-        # Mostrar primera pregunta
-        self.show_question()
-        
-        # Iniciar temporitzador
-        self.time_left = minutes * 60
-        self.timer_running = True
-        self.update_timer()
-    
-    def show_question(self):
-        """Mostra la pregunta actual"""
-        if self.current_index >= len(self.questions):
-            self.show_results()
-            return
-        
-        q = self.questions[self.current_index]
-        
-        # Netejar opcions
-        for widget in self.options_frame.winfo_children():
-            widget.destroy()
-        
-        # Mostrar pregunta
-        level_labels = {'easy': 'Fàcil', 'medium': 'Mitjà', 'hard': 'Difícil'}
-        level = self.level_var.get() if hasattr(self, 'level_var') else 'easy'
-        
-        self.question_label.config(
-            text=f'Pregunta {self.current_index + 1}: {q["q"]}',
-            font=('Inter', 14, 'bold'),
-            fg=self.colors['text']
-        )
-        
-        # Opcions
-        self.option_buttons = []
-        for i, opt in enumerate(q['options']):
-            btn = tk.Button(self.options_frame,
-                           text=f'{chr(65+i)}. {opt}',
-                           font=('Inter', 11), bg='white',
-                           relief='ridge', bd=2, pady=8,
-                           anchor='w', padx=15,
-                           command=lambda idx=i: self.select_option(idx))
-            btn.pack(fill='x', pady=4, padx=20)
-            self.option_buttons.append(btn)
-        
-        self.progress_label.config(text=f'{self.current_index + 1} / {self.total_questions}')
-        self.is_answered = False
-    
-    def select_option(self, idx):
-        """Selecciona una opció"""
-        if self.is_answered or self.is_finished:
-            return
-        
-        q = self.questions[self.current_index]
-        is_correct = (idx == q['correct'])
-        
-        if is_correct:
-            self.score += 1
-            self.option_buttons[idx].config(bg=self.colors['success'], fg='white')
-        else:
-            self.option_buttons[idx].config(bg=self.colors['danger'], fg='white')
-            self.option_buttons[q['correct']].config(bg=self.colors['success'], fg='white')
-        
-        self.user_answers.append(idx)
-        self.is_answered = True
-        
-        # Deshabilitar botons
-        for btn in self.option_buttons:
-            btn.config(state='disabled')
-        
-        # Següent pregunta després d'un moment
-        self.root.after(1500, self.next_question)
-    
-    def next_question(self):
-        """Passa a la següent pregunta"""
-        if self.is_finished:
-            return
-        
-        self.current_index += 1
-        if self.current_index >= len(self.questions):
-            self.show_results()
-        else:
-            self.show_question()
-    
-    def show_results(self):
-        """Mostra els resultats finals"""
-        self.is_finished = True
-        self.timer_running = False
-        if self.timer_id:
-            self.root.after_cancel(self.timer_id)
-            self.timer_id = None
-        
-        # Netejar opcions
-        for widget in self.options_frame.winfo_children():
-            widget.destroy()
-        
-        total = self.total_questions
-        percent = round((self.score / total) * 100) if total > 0 else 0
-        
-        emoji = '🌟' if percent >= 90 else '😊' if percent >= 70 else '🤔' if percent >= 50 else '📚' if percent >= 30 else '😢'
-        
-        self.question_label.config(text=f'{emoji} Resultats: {self.score}/{total} ({percent}%)',
-                                   font=('Inter', 18, 'bold'),
-                                   fg=self.colors['text'])
-        
-        # Mostrar detall
-        detall_frame = tk.Frame(self.options_frame, bg='white')
-        detall_frame.pack(fill='both', expand=True)
-        
-        # Scroll per al detall
-        canvas = tk.Canvas(detall_frame, bg='white', highlightthickness=0)
-        scrollbar = tk.Scrollbar(detall_frame, orient='vertical', command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg='white')
-        
-        scrollable_frame.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
-        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        for i, q in enumerate(self.questions):
-            user_ans = self.user_answers[i] if i < len(self.user_answers) else -1
+    # Detall
+    with st.expander("📋 Veure detall de respostes", expanded=False):
+        for i, q in enumerate(st.session_state.questions):
+            user_ans = st.session_state.answers[i] if i < len(st.session_state.answers) else -1
             is_correct = (user_ans == q['correct'])
             
-            frame = tk.Frame(scrollable_frame, bg='white', pady=3)
-            frame.pack(fill='x')
-            
             icon = '✅' if is_correct else '❌' if user_ans >= 0 else '⏭️'
-            color = self.colors['success'] if is_correct else self.colors['danger'] if user_ans >= 0 else self.colors['warning']
+            color = '#00B894' if is_correct else '#FF6B6B' if user_ans >= 0 else '#FDCB6E'
             
-            tk.Label(frame, text=f'{icon} {q["q"]}', font=('Inter', 10),
-                     bg='white', fg=color).pack(side='left')
+            st.markdown(f"""
+            <div class="result-item">
+                <span class="icon">{icon}</span>
+                <span class="question-text">{q['q']}</span>
+                <span class="answer-text">
+            """, unsafe_allow_html=True)
             
-            if user_ans == -1:
-                tk.Label(frame, text='(No contestada)', font=('Inter', 9),
-                         bg='white', fg=self.colors['text_light']).pack(side='left', padx=10)
-            elif is_correct:
-                tk.Label(frame, text=f'→ {q["options"][user_ans]}', font=('Inter', 9),
-                         bg='white', fg=self.colors['success']).pack(side='left', padx=10)
+            if is_correct:
+                st.markdown(f'<span class="correct">✅ {q["options"][user_ans]}</span>', unsafe_allow_html=True)
+            elif user_ans >= 0:
+                st.markdown(f'<span class="wrong">❌ {q["options"][user_ans]}</span> → <span class="correct">✅ {q["options"][q["correct"]]}</span>', unsafe_allow_html=True)
             else:
-                tk.Label(frame, text=f'→ Tu: {q["options"][user_ans]}', font=('Inter', 9),
-                         bg='white', fg=self.colors['danger']).pack(side='left', padx=10)
-                tk.Label(frame, text=f'✅ {q["options"][q["correct"]]}', font=('Inter', 9),
-                         bg='white', fg=self.colors['success']).pack(side='left', padx=5)
-        
-        canvas.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
-        
-        # Botons
-        btn_frame = tk.Frame(self.options_frame, bg='white')
-        btn_frame.pack(pady=15)
-        
-        tk.Button(btn_frame, text='🔄 Repetir', command=self.start_quiz,
-                  bg=self.colors['primary'], fg='white',
-                  font=('Inter', 11), relief='flat',
-                  padx=20, pady=8, cursor='hand2').pack(side='left', padx=5)
-        
-        tk.Button(btn_frame, text='🏠 Inici', command=lambda: self.go_to_page('home'),
-                  bg=self.colors['text_light'], fg='white',
-                  font=('Inter', 11), relief='flat',
-                  padx=20, pady=8, cursor='hand2').pack(side='left', padx=5)
-        
-        self.start_btn.config(state='normal')
-    
-    def update_timer(self):
-        """Actualitza el temporitzador"""
-        if not self.timer_running or self.is_finished:
-            return
-        
-        if self.time_left <= 0:
-            self.timer_running = False
-            self.show_results()
-            return
-        
-        mins = self.time_left // 60
-        secs = self.time_left % 60
-        self.timer_label.config(text=f'⏱ {mins:02d}:{secs:02d}')
-        self.time_left -= 1
-        
-        self.timer_id = self.root.after(1000, self.update_timer)
-    
-    # ==============================================================
-    # MEMORITZACIÓ
-    # ==============================================================
-    
-    def start_memorization(self):
-        """Inicia el mòdul de memorització"""
-        if not self.image_path:
-            messagebox.showerror('Error', 'Si us plau, selecciona una imatge primer')
-            return
-        
-        try:
-            view_time = int(self.view_entry.get())
-        except:
-            messagebox.showerror('Error', 'Introdueix un temps vàlid')
-            return
-        
-        # Netejar zona de preguntes
-        for widget in self.options_frame.winfo_children():
-            widget.destroy()
-        
-        self.memorization_phase = 'memorization'
-        self.notes = ''
-        self.start_btn.config(state='disabled')
-        
-        # Timer
-        self.timer_label.config(text=f'⏱ {view_time}')
-        
-        # Mostrar imatge
-        try:
-            img = Image.open(self.image_path)
-            max_size = (500, 400)
-            img.thumbnail(max_size, Image.LANCZOS)
-            photo = ImageTk.PhotoImage(img)
+                st.markdown('<span style="color:#636E72;">⏭️ No contestada</span>', unsafe_allow_html=True)
             
-            img_label = tk.Label(self.options_frame, image=photo, bg='white')
-            img_label.image = photo
-            img_label.pack(pady=10)
-        except:
-            messagebox.showerror('Error', 'No s\'ha pogut carregar la imatge')
-            return
-        
-        # Quadre de notes
-        notes_frame = tk.Frame(self.options_frame, bg='white')
-        notes_frame.pack(fill='x', padx=20, pady=10)
-        
-        tk.Label(notes_frame, text='📝 Prendre notes:', font=('Inter', 11, 'bold'),
-                 bg='white').pack(anchor='w')
-        
-        self.notes_text = tk.Text(notes_frame, height=5, width=60,
-                                  font=('Inter', 11), wrap='word')
-        self.notes_text.pack(fill='x', pady=5)
-        
-        # Iniciar compte enrere
-        self.time_left = view_time
-        self.timer_running = True
-        self.update_memorization_timer(view_time, img_label)
+            st.markdown("</span></div>", unsafe_allow_html=True)
     
-    def update_memorization_timer(self, remaining, img_label):
-        """Actualitza el temporitzador de memorització"""
-        if remaining <= 0:
-            self.timer_running = False
-            self.notes = self.notes_text.get('1.0', tk.END).strip()
-            self.go_to_writing_phase()
-            return
-        
-        self.timer_label.config(text=f'⏱ {remaining}')
-        self.root.after(1000, lambda: self.update_memorization_timer(remaining - 1, img_label))
-    
-    def go_to_writing_phase(self):
-        """Passa a la fase d'escriptura"""
-        self.memorization_phase = 'writing'
-        
-        # Netejar
-        for widget in self.options_frame.winfo_children():
-            widget.destroy()
-        
-        self.question_label.config(text='✍️ Escriu el que recordes',
-                                   font=('Inter', 18, 'bold'),
-                                   fg=self.colors['text'])
-        
-        tk.Label(self.options_frame, text='La imatge ja no es mostra. Escriu tot el que recordis.',
-                 font=('Inter', 12), bg='white',
-                 fg=self.colors['text_light']).pack(pady=5)
-        
-        self.write_text = tk.Text(self.options_frame, height=8, width=60,
-                                  font=('Inter', 12), wrap='word')
-        self.write_text.pack(padx=20, pady=10, fill='both', expand=True)
-        
-        btn_frame = tk.Frame(self.options_frame, bg='white')
-        btn_frame.pack(pady=10)
-        
-        tk.Button(btn_frame, text='🔍 Comparar', command=self.compare_memorization,
-                  bg=self.colors['success'], fg='white',
-                  font=('Inter', 12, 'bold'), relief='flat',
-                  padx=30, pady=10, cursor='hand2').pack()
-    
-    def compare_memorization(self):
-        """Compara el text escrit amb l'original"""
-        user_text = self.write_text.get('1.0', tk.END).strip()
-        
-        if not user_text:
-            messagebox.showwarning('Atenció', 'Si us plau, escriu alguna cosa')
-            return
-        
-        self.memorization_phase = 'results'
-        
-        # Netejar
-        for widget in self.options_frame.winfo_children():
-            widget.destroy()
-        
-        self.question_label.config(text='📊 Resultats de la memorització',
-                                   font=('Inter', 18, 'bold'),
-                                   fg=self.colors['text'])
-        
-        # Grid per resultats
-        grid_frame = tk.Frame(self.options_frame, bg='white')
-        grid_frame.pack(fill='both', expand=True, padx=10)
-        
-        # Imatge original
-        left_frame = tk.Frame(grid_frame, bg='white', relief='ridge', bd=1)
-        left_frame.pack(side='left', fill='both', expand=True, padx=5)
-        
-        tk.Label(left_frame, text='🖼️ Imatge original', font=('Inter', 12, 'bold'),
-                 bg='white').pack(pady=5)
-        
-        try:
-            img = Image.open(self.image_path)
-            max_size = (300, 250)
-            img.thumbnail(max_size, Image.LANCZOS)
-            photo = ImageTk.PhotoImage(img)
-            
-            img_label = tk.Label(left_frame, image=photo, bg='white')
-            img_label.image = photo
-            img_label.pack(pady=5, expand=True)
-        except:
-            tk.Label(left_frame, text='(No s\'ha pogut carregar la imatge)',
-                     bg='white').pack(pady=20)
-        
-        # Text escrit
-        right_frame = tk.Frame(grid_frame, bg='white', relief='ridge', bd=1)
-        right_frame.pack(side='right', fill='both', expand=True, padx=5)
-        
-        tk.Label(right_frame, text='✍️ El que has escrit', font=('Inter', 12, 'bold'),
-                 bg='white').pack(pady=5)
-        
-        text_display = tk.Text(right_frame, height=10, width=30,
-                               font=('Inter', 11), wrap='word')
-        text_display.insert('1.0', user_text if user_text else '(No has escrit res)')
-        text_display.config(state='disabled')
-        text_display.pack(fill='both', expand=True, padx=10, pady=5)
-        
-        # Notes
-        notes_frame = tk.Frame(self.options_frame, bg='white', relief='ridge', bd=1)
-        notes_frame.pack(fill='x', padx=10, pady=10)
-        
-        tk.Label(notes_frame, text='📝 Notes preses durant la memorització',
-                 font=('Inter', 12, 'bold'), bg='white').pack(anchor='w', padx=10, pady=5)
-        
-        notes_display = tk.Text(notes_frame, height=4, width=60,
-                                font=('Inter', 11), wrap='word')
-        notes_display.insert('1.0', self.notes if self.notes else '(No has pres notes)')
-        notes_display.config(state='disabled')
-        notes_display.pack(fill='x', padx=10, pady=5)
-        
-        # Botons
-        btn_frame = tk.Frame(self.options_frame, bg='white')
-        btn_frame.pack(pady=10)
-        
-        tk.Button(btn_frame, text='🔄 Tornar a començar',
-                  command=self.reset_memorization,
-                  bg=self.colors['primary'], fg='white',
-                  font=('Inter', 11), relief='flat',
-                  padx=20, pady=8, cursor='hand2').pack(side='left', padx=5)
-        
-        tk.Button(btn_frame, text='🏠 Inici', command=lambda: self.go_to_page('home'),
-                  bg=self.colors['text_light'], fg='white',
-                  font=('Inter', 11), relief='flat',
-                  padx=20, pady=8, cursor='hand2').pack(side='left', padx=5)
-        
-        self.start_btn.config(state='normal')
-    
-    def reset_memorization(self):
-        """Reinicia el mòdul de memorització"""
-        self.memorization_phase = 'idle'
-        self.start_btn.config(state='normal')
-        self.show_practica()
-    
-    # ==============================================================
-    # PÀGINA: TEORIA
-    # ==============================================================
-    
-    def show_teoria(self):
-        """Mostra la pàgina de teoria de matemàtiques"""
-        self.clear_content()
-        self.current_page = 'teoria'
-        
-        # Botó tornar
-        self.create_back_button()
-        
-        # Contingut de teoria
-        teoria_frame = tk.Frame(self.dynamic_frame, bg='white')
-        teoria_frame.pack(fill='both', expand=True)
-        
-        # Títol
-        tk.Label(teoria_frame, text='📐 Conceptes matemàtics',
-                 font=('Inter', 18, 'bold'), bg='white',
-                 fg=self.colors['text']).pack(pady=10)
-        
-        tk.Label(teoria_frame, text='Principals conceptes per resoldre els exercicis de càlcul.',
-                 font=('Inter', 12), bg='white',
-                 fg=self.colors['text_light']).pack(pady=(0, 15))
-        
-        # Contingut amb scroll
-        canvas = tk.Canvas(teoria_frame, bg='white', highlightthickness=0)
-        scrollbar = tk.Scrollbar(teoria_frame, orient='vertical', command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg='white')
-        
-        scrollable_frame.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
-        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Continguts
-        sections = [
-            ('1. Prioritat d\'operacions', [
-                'L\'ordre de les operacions és fonamental per resoldre expressions matemàtiques.',
-                '📋 Ordre de prioritat:',
-                '  1. Parèntesis ( ) — Primer de tot',
-                '  2. Potències i arrels x², √x',
-                '  3. Multiplicació i divisió ×, ÷ — D\'esquerra a dreta',
-                '  4. Suma i resta +, − — D\'esquerra a dreta',
-                '💡 Exemple: 8 + 3 × 2 = 8 + 6 = 14',
-                '💡 Exemple: (6 + 4) × 3 = 10 × 3 = 30'
-            ]),
-            ('2. Percentatges', [
-                'Un percentatge és una fracció amb denominador 100.',
-                '📋 Fórmula: Percentatge = (Part / Total) × 100',
-                '📋 Calcular: Quantitat × (Percentatge / 100)',
-                '💡 Exemple: 20% de 80 = 80 × 0.20 = 16',
-                '💡 Exemple: 25% de 40 = 40 × 0.25 = 10 € de descompte'
-            ]),
-            ('3. Regla de 3', [
-                '📋 Regla de 3 directa: a/b = c/x → x = (b × c) / a',
-                '💡 Exemple: 3 kg → 6 €, 5 kg → x = (6 × 5) / 3 = 10 €',
-                '📋 Regla de 3 inversa: a × b = c × x → x = (a × b) / c',
-                '💡 Exemple: 2 persones → 12 h, 4 persones → x = (2 × 12) / 4 = 6 h'
-            ]),
-            ('4. Geometria bàsica', [
-                '📋 Perímetre rectangle: P = 2 × (ample + llarg)',
-                '💡 6 cm × 8 cm → P = 2 × (6 + 8) = 28 cm',
-                '📋 Àrea quadrat: A = costat²',
-                '💡 5 cm → A = 5² = 25 cm²',
-                '📋 Àrea triangle: A = (base × altura) / 2',
-                '💡 6 cm × 4 cm → A = (6 × 4) / 2 = 12 cm²'
-            ]),
-            ('5. Mitjana aritmètica', [
-                '📋 Mitjana = Suma de tots els valors / Nombre de valors',
-                '💡 Mitjana de 4, 8, 6: (4 + 8 + 6) / 3 = 18 / 3 = 6'
-            ]),
-            ('6. Fraccions', [
-                '📋 Suma: a/b + c/d = (a×d + c×b) / (b×d)',
-                '💡 3/4 + 1/2 = (3×2 + 1×4) / (4×2) = 10/8 = 5/4',
-                '📋 Producte: a/b × c/d = (a×c) / (b×d)',
-                '💡 2/3 × 3/4 = 6/12 = 1/2',
-                '📋 Divisió: a/b ÷ c/d = a/b × d/c = (a×d) / (b×c)',
-                '💡 5/8 ÷ 3/4 = 5/8 × 4/3 = 20/24 = 5/6'
-            ]),
-            ('7. Potències', [
-                '📋 a^n = a × a × ... × a (n vegades)',
-                '💡 2³ = 2 × 2 × 2 = 8',
-                '💡 3² × 2³ = 9 × 8 = 72',
-                '📋 Arrel quadrada: √x = y si y² = x',
-                '💡 √49 + √16 = 7 + 4 = 11'
-            ])
-        ]
-        
-        for title, items in sections:
-            # Títol de secció
-            tk.Label(scrollable_frame, text=title,
-                     font=('Inter', 14, 'bold'), bg='white',
-                     fg=self.colors['primary_dark']).pack(anchor='w', pady=(10, 5))
-            
-            for item in items:
-                if item.startswith('📋') or item.startswith('💡'):
-                    tk.Label(scrollable_frame, text=item,
-                             font=('Inter', 11), bg='white',
-                             fg=self.colors['text']).pack(anchor='w', padx=15, pady=2)
-                else:
-                    tk.Label(scrollable_frame, text=item,
-                             font=('Inter', 11), bg='white',
-                             fg=self.colors['text']).pack(anchor='w', padx=5, pady=2)
-        
-        canvas.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
-    
-    # ==============================================================
-    # PÀGINA: ORTOGRAFIA
-    # ==============================================================
-    
-    def show_ortografia(self):
-        """Mostra la pàgina de regles ortogràfiques"""
-        self.clear_content()
-        self.current_page = 'ortografia'
-        
-        # Botó tornar
-        self.create_back_button()
-        
-        # Contingut d'ortografia
-        orto_frame = tk.Frame(self.dynamic_frame, bg='white')
-        orto_frame.pack(fill='both', expand=True)
-        
-        # Títol
-        tk.Label(orto_frame, text='📝 Regles ortogràfiques',
-                 font=('Inter', 18, 'bold'), bg='white',
-                 fg=self.colors['text']).pack(pady=10)
-        
-        tk.Label(orto_frame, text='Normes bàsiques per escriure correctament en català.',
-                 font=('Inter', 12), bg='white',
-                 fg=self.colors['text_light']).pack(pady=(0, 15))
-        
-        # Contingut amb scroll
-        canvas = tk.Canvas(orto_frame, bg='white', highlightthickness=0)
-        scrollbar = tk.Scrollbar(orto_frame, orient='vertical', command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg='white')
-        
-        scrollable_frame.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
-        canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Continguts
-        sections = [
-            ('1. L\'alfabet català', [
-                'L\'alfabet català té 27 lletres:',
-                'A B C D E F G H I J K L M N O P Q R S T U V W X Y Z',
-                'Les lletres K, W i Y només s\'usen en paraules d\'origen estranger.'
-            ]),
-            ('2. Les vocals', [
-                'El català té 7 vocals: a, e, i, o, u, è (oberta) i é (tancada)',
-                '🔊 Vocals obertes: à, è, ò',
-                '🔊 Vocals tancades: é, í, ó, ú',
-                '💡 Exemples:',
-                '  • è oberta: cafè, pedra',
-                '  • é tancada: café, té',
-                '  • ò oberta: cançó, colònia',
-                '  • ó tancada: camió, arròs'
-            ]),
-            ('3. Apostrofació i contraccions', [
-                '📋 Apostrofació:',
-                'S\'apostrofen els articles el, la, en i les preposicions de, per',
-                'davant de paraula que comença per vocal o h.',
-                '💡 Exemples: l\'home, l\'escola, d\'ahir',
-                '⚠️ Excepcions: No s\'apostrofa davant de la, una, o davant de i/u àtones.',
-                '📋 Contraccions:',
-                'de + el = del → el llibre del noi',
-                'per + el = pel → pel camí'
-            ]),
-            ('4. Les esses: s, ss, c, ç, z', [
-                '🔤 S — A començament de paraula, entre vocals (sonora), davant de consonant',
-                '💡 Exemples: sopa, casa, escola',
-                '🔤 SS — Entre vocals (sorda)',
-                '💡 Exemples: passar, cassola',
-                '🔤 C/Ç — Ç davant de a, o, u; C davant de e, i',
-                '💡 Exemples: braç, plaça, cervesa, ciència'
-            ]),
-            ('5. La b i la v', [
-                '🔤 B — Davant de l o r, en paraules que comencen per ab-, ob-, sub-',
-                '💡 Exemples: bla, bra, abans, obtenir',
-                '🔤 V — En paraules que comencen per ev-, ov-',
-                '💡 Exemples: evitar, ovella',
-                '⚠️ Atenció! Aquesta és una de les regles que més dubtes genera.'
-            ]),
-            ('6. La ela geminada: l·l', [
-                'La ela geminada l·l és un so característic del català.',
-                '🔤 S\'escriu l·l en paraules on hi ha dos sons l separats',
-                '💡 Exemples: col·legi, il·lusió, intel·ligent, novel·la',
-                '⚠️ Important! La ela geminada no és una l doble normal (ll).'
-            ]),
-            ('7. La erra: r i rr', [
-                '🔤 R — A començament de paraula, entre vocals (vibrant simple)',
-                '💡 Exemples: ram, rosa, cara, hora',
-                '🔤 RR — Entre vocals (vibrant múltiple)',
-                '💡 Exemples: carro, terra, arrencar'
-            ]),
-            ('8. La g i la j', [
-                '🔤 G — Davant de e, i (so suau) o davant de a, o, u (so dur)',
-                '💡 Exemples: gent, girar, gat, gota, gust',
-                '🔤 J — Davant de a, o, u',
-                '💡 Exemples: ja, jo, jove, ajuda'
-            ]),
-            ('9. La ix i la x', [
-                '🔤 IX — Entre vocals',
-                '💡 Exemples: caixa, aixeta, exemple',
-                '🔤 X — A començament de paraula o al final',
-                '💡 Exemples: xarxa, xocolata, peix, reflex'
-            ]),
-            ('10. L\'accentuació gràfica', [
-                '🔤 Paraules agudes (última síl·laba): s\'accentuen si acaben en vocal, -s, -en, -in',
-                '💡 Exemples: cafè, cançó, camí',
-                '🔤 Paraules planes (penúltima): s\'accentuen si NO acaben en vocal, -s, -en, -in',
-                '💡 Exemples: llàgrima, difícil, cànon',
-                '🔤 Paraules esdrúixoles (antepenúltima): sempre s\'accentuen',
-                '💡 Exemples: pàgina, lògica, càntic'
-            ]),
-            ('11. Els accents diacrítics', [
-                'L\'accent diacrític diferencia paraules que s\'escriuen igual.',
-                '💡 Exemples:',
-                '  • sé (saber) vs se (pronom)',
-                '  • és (verb ser) vs es (pronom)',
-                '  • més (quantitat) vs mes (mes)',
-                '  • dóna (verb donar) vs dona (femella)'
-            ]),
-            ('12. La dièresi', [
-                'La dièresi (¨) marca que una u es pronuncia en els grups gue, gui, que, qui.',
-                '🔤 S\'usa en güe, güi, qüe, qüi',
-                '💡 Exemples: aigües, qüestió, pingüí, argüir, ambigüitat'
-            ])
-        ]
-        
-        for title, items in sections:
-            # Títol de secció
-            tk.Label(scrollable_frame, text=title,
-                     font=('Inter', 14, 'bold'), bg='white',
-                     fg=self.colors['primary_dark']).pack(anchor='w', pady=(10, 5))
-            
-            for item in items:
-                if item.startswith('💡') or item.startswith('⚠️'):
-                    tk.Label(scrollable_frame, text=item,
-                             font=('Inter', 11), bg='white',
-                             fg=self.colors['text']).pack(anchor='w', padx=15, pady=2)
-                elif item.startswith('  •'):
-                    tk.Label(scrollable_frame, text=item,
-                             font=('Inter', 10), bg='white',
-                             fg=self.colors['text_light']).pack(anchor='w', padx=30, pady=1)
-                else:
-                    tk.Label(scrollable_frame, text=item,
-                             font=('Inter', 11), bg='white',
-                             fg=self.colors['text']).pack(anchor='w', padx=5, pady=2)
-        
-        canvas.pack(side='left', fill='both', expand=True)
-        scrollbar.pack(side='right', fill='y')
-
+    # Botons
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button('🔄 Repetir', use_container_width=True, type="primary"):
+            reset_quiz()
+            st.session_state.page = 'practica'
+            st.rerun()
+    with col2:
+        if st.button('🏠 Inici', use_container_width=True):
+            reset_quiz()
+            st.session_state.page = 'home'
+            st.rerun()
 
 # ==============================================================
-# PUNT D'ENTRADA
+# PÀGINA: TEORIA
 # ==============================================================
 
-def main():
-    root = tk.Tk()
-    app = PsicotecnicApp(root)
-    root.mainloop()
+def teoria_page():
+    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">📐</div><div class="app-header-title">Teoria de Matemàtiques</div></div></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="btn-back" onclick="location.href=\'/\'">← Tornar al menú</div>', unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown('<div class="theory-container">', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <h2>📐 Conceptes matemàtics</h2>
+        <p style="color:#636E72;margin-bottom:1rem;">Principals conceptes per resoldre els exercicis de càlcul.</p>
+        """, unsafe_allow_html=True)
+        
+        # Índex
+        st.markdown("""
+        <div class="theory-toc">
+            <h3>📑 Continguts</h3>
+            <ul>
+                <li><a href="#prioritat">1. Prioritat d'operacions</a></li>
+                <li><a href="#percentatges">2. Percentatges</a></li>
+                <li><a href="#regla3">3. Regla de 3</a></li>
+                <li><a href="#geometria">4. Geometria bàsica</a></li>
+                <li><a href="#mitjana">5. Mitjana aritmètica</a></li>
+                <li><a href="#fraccions">6. Fraccions</a></li>
+                <li><a href="#potencies">7. Potències</a></li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 1. Prioritat d'operacions
+        st.markdown("""
+        <h3 id="prioritat">1. Prioritat d'operacions</h3>
+        <p>L'ordre de les operacions és fonamental per resoldre expressions matemàtiques.</p>
+        <div class="rule-box">
+            <strong>📋 Ordre de prioritat:</strong><br>
+            1. <strong>Parèntesis</strong> ( ) — Primer de tot<br>
+            2. <strong>Potències i arrels</strong> x², √x<br>
+            3. <strong>Multiplicació i divisió</strong> ×, ÷ — D'esquerra a dreta<br>
+            4. <strong>Suma i resta</strong> +, − — D'esquerra a dreta
+        </div>
+        <div class="example">
+            <strong>💡 Exemple:</strong> 8 + 3 × 2 = 8 + 6 = 14<br>
+            <span style="color:#636E72;font-size:0.85rem;">Primer 3 × 2 = 6, després 8 + 6 = 14</span>
+        </div>
+        <div class="example">
+            <strong>💡 Exemple:</strong> (6 + 4) × 3 = 10 × 3 = 30<br>
+            <span style="color:#636E72;font-size:0.85rem;">Primer 6 + 4 = 10, després 10 × 3 = 30</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2. Percentatges
+        st.markdown("""
+        <h3 id="percentatges">2. Percentatges</h3>
+        <p>Un percentatge és una fracció amb denominador 100.</p>
+        <div class="formula">Percentatge = (Part / Total) × 100</div>
+        <div class="formula">Quantitat × (Percentatge / 100)</div>
+        <div class="example">
+            <strong>💡 Exemple:</strong> 20% de 80 = 80 × 0.20 = 16
+        </div>
+        <div class="example">
+            <strong>💡 Exemple:</strong> Un producte de 40 € amb 25% de descompte:<br>
+            Descompte: 40 × 0.25 = 10 € → Preu final: 30 €
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 3. Regla de 3
+        st.markdown("""
+        <h3 id="regla3">3. Regla de 3</h3>
+        <p>La regla de 3 s'utilitza per resoldre problemes de proporcionalitat.</p>
+        <h4>📋 Regla de 3 directa</h4>
+        <div class="formula">a/b = c/x → x = (b × c) / a</div>
+        <div class="example">
+            <strong>💡 Exemple:</strong> 3 kg → 6 €, 5 kg → x = (6 × 5) / 3 = 10 €
+        </div>
+        <h4>📋 Regla de 3 inversa</h4>
+        <div class="formula">a × b = c × x → x = (a × b) / c</div>
+        <div class="example">
+            <strong>💡 Exemple:</strong> 2 persones → 12 h, 4 persones → x = (2 × 12) / 4 = 6 h
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 4. Geometria
+        st.markdown("""
+        <h3 id="geometria">4. Geometria bàsica</h3>
+        <div class="formula">Perímetre rectangle: P = 2 × (ample + llarg)</div>
+        <div class="example"><strong>💡 Exemple:</strong> 6 cm × 8 cm → P = 2 × (6 + 8) = 28 cm</div>
+        <div class="formula">Àrea quadrat: A = costat²</div>
+        <div class="example"><strong>💡 Exemple:</strong> 5 cm → A = 5² = 25 cm²</div>
+        <div class="formula">Àrea triangle: A = (base × altura) / 2</div>
+        <div class="example"><strong>💡 Exemple:</strong> 6 cm × 4 cm → A = (6 × 4) / 2 = 12 cm²</div>
+        """, unsafe_allow_html=True)
+        
+        # 5. Mitjana
+        st.markdown("""
+        <h3 id="mitjana">5. Mitjana aritmètica</h3>
+        <div class="formula">Mitjana = Suma de tots els valors / Nombre de valors</div>
+        <div class="example"><strong>💡 Exemple:</strong> Mitjana de 4, 8, 6: (4 + 8 + 6) / 3 = 18 / 3 = 6</div>
+        """, unsafe_allow_html=True)
+        
+        # 6. Fraccions
+        st.markdown("""
+        <h3 id="fraccions">6. Fraccions</h3>
+        <div class="formula">Suma: a/b + c/d = (a×d + c×b) / (b×d)</div>
+        <div class="example"><strong>💡 Exemple:</strong> 3/4 + 1/2 = (3×2 + 1×4) / (4×2) = 10/8 = 5/4</div>
+        <div class="formula">Producte: a/b × c/d = (a×c) / (b×d)</div>
+        <div class="example"><strong>💡 Exemple:</strong> 2/3 × 3/4 = 6/12 = 1/2</div>
+        <div class="formula">Divisió: a/b ÷ c/d = (a×d) / (b×c)</div>
+        <div class="example"><strong>💡 Exemple:</strong> 5/8 ÷ 3/4 = (5×4) / (8×3) = 20/24 = 5/6</div>
+        """, unsafe_allow_html=True)
+        
+        # 7. Potències
+        st.markdown("""
+        <h3 id="potencies">7. Potències</h3>
+        <div class="formula">aⁿ = a × a × ... × a (n vegades)</div>
+        <div class="example"><strong>💡 Exemple:</strong> 2³ = 2 × 2 × 2 = 8</div>
+        <div class="example"><strong>💡 Exemple:</strong> 3² × 2³ = 9 × 8 = 72</div>
+        <div class="formula">Arrel quadrada: √x = y si y² = x</div>
+        <div class="example"><strong>💡 Exemple:</strong> √49 + √16 = 7 + 4 = 11</div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
+# ==============================================================
+# PÀGINA: ORTOGRAFIA
+# ==============================================================
 
-if __name__ == "__main__":
-    main()
+def ortografia_page():
+    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">📝</div><div class="app-header-title">Regles Ortogràfiques</div></div></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="btn-back" onclick="location.href=\'/\'">← Tornar al menú</div>', unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown('<div class="theory-container">', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <h2>📝 Regles ortogràfiques</h2>
+        <p style="color:#636E72;margin-bottom:1rem;">Normes bàsiques per escriure correctament en català.</p>
+        """, unsafe_allow_html=True)
+        
+        # Índex
+        st.markdown("""
+        <div class="theory-toc">
+            <h3>📑 Continguts</h3>
+            <ul>
+                <li><a href="#alfabet">1. L'alfabet</a></li>
+                <li><a href="#vocals">2. Les vocals</a></li>
+                <li><a href="#apostrof">3. Apostrofació i contraccions</a></li>
+                <li><a href="#esses">4. Les esses: s, ss, c, ç, z</a></li>
+                <li><a href="#b-v">5. La b i la v</a></li>
+                <li><a href="#ela-geminada">6. La ela geminada: l·l</a></li>
+                <li><a href="#erra">7. La erra: r i rr</a></li>
+                <li><a href="#g-j">8. La g i la j</a></li>
+                <li><a href="#ix-x">9. La ix i la x</a></li>
+                <li><a href="#accentuacio">10. L'accentuació gràfica</a></li>
+                <li><a href="#diacritics">11. Els accents diacrítics</a></li>
+                <li><a href="#dieresi">12. La dièresi</a></li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 1. L'alfabet
+        st.markdown("""
+        <h3 id="alfabet">1. L'alfabet català</h3>
+        <p>L'alfabet català té 27 lletres:</p>
+        <div style="background:white;padding:0.8rem;border-radius:12px;border:1px solid #DFE6E9;text-align:center;font-size:1.1rem;letter-spacing:0.5px;font-weight:600;margin:0.5rem 0;">
+            A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+        </div>
+        <p style="color:#636E72;font-size:0.9rem;">Les lletres <strong>K</strong>, <strong>W</strong> i <strong>Y</strong> només s'usen en paraules d'origen estranger.</p>
+        """, unsafe_allow_html=True)
+        
+        # 2. Les vocals
+        st.markdown("""
+        <h3 id="vocals">2. Les vocals</h3>
+        <p>El català té 7 vocals: a, e, i, o, u, <strong>è</strong> (oberta) i <strong>é</strong> (tancada).</p>
+        <div class="rule-box">
+            <strong>🔊 Vocals obertes:</strong> à, è, ò<br>
+            <strong>🔊 Vocals tancades:</strong> é, í, ó, ú
+        </div>
+        <div class="example">
+            <strong>💡 Exemples:</strong><br>
+            • <strong>è</strong> oberta: cafè, pedra<br>
+            • <strong>é</strong> tancada: café, té<br>
+            • <strong>ò</strong> oberta: cançó, colònia<br>
+            • <strong>ó</strong> tancada: camió, arròs
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 3. Apostrofació
+        st.markdown("""
+        <h3 id="apostrof">3. Apostrofació i contraccions</h3>
+        <p>S'apostrofen els articles <strong>el, la, en</strong> i les preposicions <strong>de, per</strong> davant de paraula que comença per vocal o h.</p>
+        <div class="example">
+            <strong>💡 Exemples:</strong> l'home, l'escola, d'ahir
+        </div>
+        <div class="rule-box warning">
+            <strong>⚠️ Excepcions:</strong> No s'apostrofa davant de <strong>la, una</strong>, o davant de paraules que comencen per <strong>i</strong> o <strong>u</strong> àtones.
+        </div>
+        <p><strong>📋 Contraccions:</strong></p>
+        <div class="example">
+            • de + el = <strong>del</strong> → el llibre <strong>del</strong> noi<br>
+            • per + el = <strong>pel</strong> → <strong>pel</strong> camí
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 4. Les esses
+        st.markdown("""
+        <h3 id="esses">4. Les esses: s, ss, c, ç, z</h3>
+        <div class="rule-box">
+            <strong>🔤 S</strong> — A començament de paraula, entre vocals (sonora), davant de consonant<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: sopa, casa, escola</span>
+        </div>
+        <div class="rule-box warning">
+            <strong>🔤 SS</strong> — Entre vocals (sorda)<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: passar, cassola</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 C/Ç</strong> — Ç davant de <strong>a, o, u</strong>; C davant de <strong>e, i</strong><br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: braç, plaça, cervesa, ciència</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 5. La b i la v
+        st.markdown("""
+        <h3 id="b-v">5. La b i la v</h3>
+        <div class="rule-box">
+            <strong>🔤 B</strong> — Davant de <strong>l</strong> o <strong>r</strong>, en paraules que comencen per <strong>ab-, ob-, sub-</strong><br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: bla, bra, abans, obtenir</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 V</strong> — En paraules que comencen per <strong>ev-, ov-</strong><br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: evitar, ovella</span>
+        </div>
+        <div class="rule-box danger">
+            <strong>⚠️ Atenció!</strong> Aquesta és una de les regles que més dubtes genera.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 6. La ela geminada
+        st.markdown("""
+        <h3 id="ela-geminada">6. La ela geminada: l·l</h3>
+        <p>La ela geminada <strong>l·l</strong> és un so característic del català.</p>
+        <div class="rule-box">
+            <strong>🔤 S'escriu l·l</strong> en paraules on hi ha dos sons <strong>l</strong> separats<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: col·legi, il·lusió, intel·ligent, novel·la</span>
+        </div>
+        <div class="rule-box danger">
+            <strong>⚠️ Important!</strong> La ela geminada <strong>no</strong> és una <strong>l</strong> doble normal (ll). Són sons diferents!
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 7. La erra
+        st.markdown("""
+        <h3 id="erra">7. La erra: r i rr</h3>
+        <div class="rule-box">
+            <strong>🔤 R</strong> — A començament de paraula, entre vocals (vibrant simple)<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: ram, rosa, cara, hora</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 RR</strong> — Entre vocals (vibrant múltiple)<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: carro, terra, arrencar</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 8. La g i la j
+        st.markdown("""
+        <h3 id="g-j">8. La g i la j</h3>
+        <div class="rule-box">
+            <strong>🔤 G</strong> — Davant de <strong>e, i</strong> (so suau) o davant de <strong>a, o, u</strong> (so dur)<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: gent, girar, gat, gota, gust</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 J</strong> — Davant de <strong>a, o, u</strong><br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: ja, jo, jove, ajuda</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 9. La ix i la x
+        st.markdown("""
+        <h3 id="ix-x">9. La ix i la x</h3>
+        <div class="rule-box">
+            <strong>🔤 IX</strong> — Entre vocals<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: caixa, aixeta, exemple</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 X</strong> — A començament de paraula o al final<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: xarxa, xocolata, peix, reflex</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 10. L'accentuació
+        st.markdown("""
+        <h3 id="accentuacio">10. L'accentuació gràfica</h3>
+        <div class="rule-box">
+            <strong>🔤 Paraules agudes</strong> (última síl·laba): s'accentuen si acaben en vocal, -s, -en, -in<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: cafè, cançó, camí</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 Paraules planes</strong> (penúltima): s'accentuen si <strong>no</strong> acaben en vocal, -s, -en, -in<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: llàgrima, difícil, cànon</span>
+        </div>
+        <div class="rule-box">
+            <strong>🔤 Paraules esdrúixoles</strong> (antepenúltima): sempre s'accentuen<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: pàgina, lògica, càntic</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 11. Accents diacrítics
+        st.markdown("""
+        <h3 id="diacritics">11. Els accents diacrítics</h3>
+        <p>L'accent diacrític diferencia paraules que s'escriuen igual però tenen significats diferents.</p>
+        <div class="example">
+            <strong>💡 Exemples:</strong><br>
+            • <strong>sé</strong> (saber) vs <strong>se</strong> (pronom)<br>
+            • <strong>és</strong> (verb ser) vs <strong>es</strong> (pronom)<br>
+            • <strong>més</strong> (quantitat) vs <strong>mes</strong> (mes)<br>
+            • <strong>dóna</strong> (verb donar) vs <strong>dona</strong> (femella)
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 12. La dièresi
+        st.markdown("""
+        <h3 id="dieresi">12. La dièresi</h3>
+        <p>La dièresi (¨) marca que una <strong>u</strong> es pronuncia en els grups <strong>gue, gui, que, qui</strong>.</p>
+        <div class="rule-box">
+            <strong>🔤 S'usa en</strong> güe, güi, qüe, qüi<br>
+            <span style="color:#636E72;font-size:0.85rem;">💡 Exemples: aigües, qüestió, pingüí, argüir, ambigüitat</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ==============================================================
+# PÀGINA: MEMORITZACIÓ
+# ==============================================================
+
+def memorization_page():
+    st.markdown('<div class="app-header"><div class="app-header-left"><div class="app-header-icon">👁️</div><div class="app-header-title">Memorització Visual</div></div></div>', unsafe_allow_html=True)
+    
+    st.markdown('<div class="btn-back" onclick="location.href=\'/?page=practica\'">← Tornar a configuració</div>', unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown('<div class="memorization-container">', unsafe_allow_html=True)
+        
+        if st.session_state.mem_phase == 'viewing':
+            # Mostrar imatge
+            if st.session_state.image_file:
+                st.image(st.session_state.image_file, caption='👀 Memoritza aquesta imatge', use_container_width=True)
+            
+            # Timer
+            view_time = st.session_state.view_time
+            st.markdown(f'<div class="memorization-timer">⏱ {view_time}</div>', unsafe_allow_html=True)
+            
+            # Quadre de notes
+            st.session_state.mem_notes = st.text_area('📝 Prendre notes', height=100,
+                                                       placeholder='Escriu aquí les teves notes...',
+                                                       key='mem_notes_area')
+            
+            # Barra de progrés
+            progress_bar = st.progress(0)
+            for i in range(view_time):
+                progress_bar.progress((i + 1) / view_time)
+                time.sleep(1)
+            
+            st.session_state.mem_phase = 'writing'
+            st.rerun()
+        
+        elif st.session_state.mem_phase == 'writing':
+            st.markdown('<h3 style="color:#2D3436;">✍️ Escriu el que recordes</h3>', unsafe_allow_html=True)
+            st.info('La imatge ja no es mostra. Escriu tot el que recordis.')
+            
+            user_text = st.text_area('El teu text', height=200,
+                                      placeholder='Escriu aquí tot el que recordis de la imatge...',
+                                      key='mem_user_text')
+            
+            if st.button('🔍 Comparar', use_container_width=True, type="primary"):
+                # Mostrar resultats
+                st.markdown('<h3 style="color:#2D3436;margin-top:1.5rem;">📊 Comparació</h3>', unsafe_allow_html=True)
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown('<p style="font-weight:600;color:#2D3436;">🖼️ Imatge original</p>', unsafe_allow_html=True)
+                    if st.session_state.image_file:
+                        st.image(st.session_state.image_file, use_container_width=True)
+                
+                with col2:
+                    st.markdown('<p style="font-weight:600;color:#2D3436;">✍️ El que has escrit</p>', unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="background:#F5F8FC;padding:1rem;border-radius:12px;min-height:120px;border:1px solid #DFE6E9;font-size:0.95rem;color:#2D3436;">
+                        {user_text if user_text else '<span style="color:#636E72;">(No has escrit res)</span>'}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                st.markdown('<p style="font-weight:600;color:#2D3436;margin-top:0.5rem;">📝 Notes preses</p>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="background:#F5F8FC;padding:1rem;border-radius:12px;border:1px solid #DFE6E9;font-size:0.95rem;color:#2D3436;">
+                    {st.session_state.mem_notes if st.session_state.mem_notes else '<span style="color:#636E72;">(No has pres notes)</span>'}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if st.button('🔄 Tornar a començar', use_container_width=True):
+                    st.session_state.mem_phase = 'viewing'
+                    st.session_state.page = 'practica'
+                    st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ==============================================================
+# ROUTER PRINCIPAL
+# ==============================================================
+
+# Llegir paràmetre de la URL
+query_params = st.query_params
+if 'page' in query_params:
+    page_param = query_params['page']
+    if page_param in ['teoria', 'ortografia', 'practica', 'memorization']:
+        st.session_state.page = page_param
+
+# Navegació
+if st.session_state.page == 'home':
+    home_page()
+elif st.session_state.page == 'practica':
+    practica_page()
+elif st.session_state.page == 'quiz':
+    quiz_page()
+elif st.session_state.page == 'results':
+    results_page()
+elif st.session_state.page == 'teoria':
+    teoria_page()
+elif st.session_state.page == 'ortografia':
+    ortografia_page()
+elif st.session_state.page == 'memorization':
+    memorization_page()
