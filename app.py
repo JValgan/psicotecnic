@@ -1,6 +1,6 @@
 """
 PSICOTÈCNIC 3 EN 1 - App per a Streamlit
-Versió amb navegació corregida
+Versió amb Teoria de Matemàtiques corregida
 """
 
 import streamlit as st
@@ -811,57 +811,72 @@ st.markdown("""
         background: rgba(255,255,255,0.9);
         backdrop-filter: blur(10px);
         border-radius: 20px;
-        padding: 1.8rem;
+        padding: 2rem;
         border: 1px solid rgba(255,255,255,0.3);
         box-shadow: 0 4px 20px rgba(0,0,0,0.04);
         margin-top: 1rem;
     }
     
     .theory-container h2 {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         font-weight: 700;
         color: #2D3436;
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.8rem;
         display: flex;
         align-items: center;
         gap: 0.6rem;
     }
     
     .theory-container h3 {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 600;
         color: #3A7BC8;
-        margin: 1rem 0 0.4rem 0;
+        margin: 1.2rem 0 0.6rem 0;
+        padding-top: 0.5rem;
+        border-top: 2px solid #DFE6E9;
     }
     
-    .theory-container .formula {
+    .theory-container p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #2D3436;
+        margin-bottom: 0.5rem;
+    }
+    
+    .theory-container .formula-box {
         background: white;
-        padding: 0.6rem 1rem;
+        padding: 0.8rem 1.2rem;
         border-radius: 12px;
         border: 1px solid #DFE6E9;
-        margin: 0.4rem 0;
+        margin: 0.6rem 0;
         text-align: center;
-        font-size: 1rem;
-        font-weight: 500;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2D3436;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        font-family: 'Courier New', monospace;
+    }
+    
+    .theory-container .example-box {
+        background: white;
+        padding: 0.8rem 1.2rem;
+        border-radius: 12px;
+        border-left: 4px solid #4A90D9;
+        margin: 0.5rem 0;
+        font-size: 0.95rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     
-    .theory-container .example {
-        background: white;
-        padding: 0.6rem 1rem;
-        border-radius: 12px;
-        border-left: 4px solid #4A90D9;
-        margin: 0.4rem 0;
-        font-size: 0.9rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    .theory-container .example-box strong {
+        color: #4A90D9;
     }
     
     .theory-container .rule-box {
         background: white;
-        padding: 0.6rem 1rem;
+        padding: 0.8rem 1.2rem;
         border-radius: 12px;
         border-left: 4px solid #00B894;
-        margin: 0.4rem 0;
+        margin: 0.5rem 0;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     
@@ -873,6 +888,18 @@ st.markdown("""
         border-left-color: #FF6B6B;
     }
     
+    .theory-container ul, .theory-container ol {
+        padding-left: 1.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .theory-container li {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #2D3436;
+        margin-bottom: 0.2rem;
+    }
+    
     .theory-toc {
         background: white;
         padding: 0.8rem 1.2rem;
@@ -880,6 +907,12 @@ st.markdown("""
         border: 1px solid #DFE6E9;
         margin-bottom: 1.2rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    
+    .theory-toc h3 {
+        margin-top: 0;
+        border-top: none;
+        padding-top: 0;
     }
     
     .theory-toc ul {
@@ -1574,11 +1607,9 @@ def quiz_page():
                 else:
                     btn_type = "secondary"
                 disabled = True
-                extra_class = 'correct' if is_correct else ('wrong' if is_selected else '')
             else:
                 btn_type = "secondary"
                 disabled = False
-                extra_class = ''
             
             # Botó
             if st.button(
@@ -1656,7 +1687,7 @@ def results_page():
             go_to_page('home')
 
 # ==============================================================
-# PÀGINA: TEORIA
+# PÀGINA: TEORIA DE MATEMÀTIQUES (CORREGIDA)
 # ==============================================================
 
 def teoria_page():
@@ -1699,36 +1730,46 @@ def teoria_page():
         # 1. Prioritat d'operacions
         st.markdown("""
         <h3 id="prioritat">1. Prioritat d'operacions</h3>
-        <p>L'ordre de les operacions és fonamental per resoldre expressions matemàtiques.</p>
+        <p>L'ordre de les operacions és fonamental per resoldre expressions matemàtiques correctament.</p>
+        
         <div class="rule-box">
-            <strong>📋 Ordre de prioritat:</strong><br>
-            1. <strong>Parèntesis</strong> ( ) — Primer de tot<br>
-            2. <strong>Potències i arrels</strong> x², √x<br>
-            3. <strong>Multiplicació i divisió</strong> ×, ÷ — D'esquerra a dreta<br>
-            4. <strong>Suma i resta</strong> +, − — D'esquerra a dreta
+            <strong>📋 Ordre de prioritat:</strong><br><br>
+            <strong>1. Parèntesis</strong> ( ) — Primer de tot<br>
+            <strong>2. Potències i arrels</strong> x², √x<br>
+            <strong>3. Multiplicació i divisió</strong> ×, ÷ — D'esquerra a dreta<br>
+            <strong>4. Suma i resta</strong> +, − — D'esquerra a dreta
         </div>
-        <div class="example">
-            <strong>💡 Exemple:</strong> 8 + 3 × 2 = 8 + 6 = 14<br>
-            <span style="color:#636E72;font-size:0.85rem;">Primer 3 × 2 = 6, després 8 + 6 = 14</span>
+        
+        <div class="example-box">
+            <strong>💡 Exemple 1:</strong> 8 + 3 × 2<br>
+            Primer fem 3 × 2 = 6<br>
+            Després 8 + 6 = <strong>14</strong>
         </div>
-        <div class="example">
-            <strong>💡 Exemple:</strong> (6 + 4) × 3 = 10 × 3 = 30<br>
-            <span style="color:#636E72;font-size:0.85rem;">Primer 6 + 4 = 10, després 10 × 3 = 30</span>
+        
+        <div class="example-box">
+            <strong>💡 Exemple 2:</strong> (6 + 4) × 3<br>
+            Primer fem 6 + 4 = 10<br>
+            Després 10 × 3 = <strong>30</strong>
         </div>
         """, unsafe_allow_html=True)
         
         # 2. Percentatges
         st.markdown("""
         <h3 id="percentatges">2. Percentatges</h3>
-        <p>Un percentatge és una fracció amb denominador 100.</p>
-        <div class="formula">Percentatge = (Part / Total) × 100</div>
-        <div class="formula">Quantitat × (Percentatge / 100)</div>
-        <div class="example">
-            <strong>💡 Exemple:</strong> 20% de 80 = 80 × 0.20 = 16
+        <p>Un percentatge és una fracció amb denominador 100. S'escriu amb el símbol %.</p>
+        
+        <div class="formula-box">Percentatge = (Part / Total) × 100</div>
+        <div class="formula-box">Quantitat × (Percentatge / 100)</div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple 1:</strong> Quin és el 20% de 80?<br>
+            80 × 20/100 = 80 × 0.20 = <strong>16</strong>
         </div>
-        <div class="example">
-            <strong>💡 Exemple:</strong> Un producte de 40 € amb 25% de descompte:<br>
-            Descompte: 40 × 0.25 = 10 € → Preu final: 30 €
+        
+        <div class="example-box">
+            <strong>💡 Exemple 2:</strong> Un producte de 40 € té un 25% de descompte.<br>
+            Descompte = 40 × 25/100 = 40 × 0.25 = <strong>10 €</strong><br>
+            Preu final = 40 - 10 = <strong>30 €</strong>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1736,55 +1777,109 @@ def teoria_page():
         st.markdown("""
         <h3 id="regla3">3. Regla de 3</h3>
         <p>La regla de 3 s'utilitza per resoldre problemes de proporcionalitat.</p>
+        
         <h4>📋 Regla de 3 directa</h4>
-        <div class="formula">a/b = c/x → x = (b × c) / a</div>
-        <div class="example">
-            <strong>💡 Exemple:</strong> 3 kg → 6 €, 5 kg → x = (6 × 5) / 3 = 10 €
+        <p>Quan dues magnituds són <strong>directament proporcionals</strong> (si una augmenta, l'altra també).</p>
+        <div class="formula-box">a/b = c/x → x = (b × c) / a</div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> Si 3 kg de pomes costen 6 €, quant costen 5 kg?<br>
+            3/6 = 5/x → x = (6 × 5) / 3 = 30 / 3 = <strong>10 €</strong>
         </div>
+        
         <h4>📋 Regla de 3 inversa</h4>
-        <div class="formula">a × b = c × x → x = (a × b) / c</div>
-        <div class="example">
-            <strong>💡 Exemple:</strong> 2 persones → 12 h, 4 persones → x = (2 × 12) / 4 = 6 h
+        <p>Quan dues magnituds són <strong>inversament proporcionals</strong> (si una augmenta, l'altra disminueix).</p>
+        <div class="formula-box">a × b = c × x → x = (a × b) / c</div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> Si 2 persones pinten una casa en 12 hores, quant trigaran 4 persones?<br>
+            2 × 12 = 4 × x → x = (2 × 12) / 4 = 24 / 4 = <strong>6 hores</strong>
         </div>
         """, unsafe_allow_html=True)
         
         # 4. Geometria
         st.markdown("""
         <h3 id="geometria">4. Geometria bàsica</h3>
-        <div class="formula">Perímetre rectangle: P = 2 × (ample + llarg)</div>
-        <div class="example"><strong>💡 Exemple:</strong> 6 cm × 8 cm → P = 2 × (6 + 8) = 28 cm</div>
-        <div class="formula">Àrea quadrat: A = costat²</div>
-        <div class="example"><strong>💡 Exemple:</strong> 5 cm → A = 5² = 25 cm²</div>
-        <div class="formula">Àrea triangle: A = (base × altura) / 2</div>
-        <div class="example"><strong>💡 Exemple:</strong> 6 cm × 4 cm → A = (6 × 4) / 2 = 12 cm²</div>
+        
+        <div class="formula-box">Perímetre rectangle = 2 × (ample + llarg)</div>
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> Rectangle de 6 cm d'ample i 8 cm de llarg<br>
+            P = 2 × (6 + 8) = 2 × 14 = <strong>28 cm</strong>
+        </div>
+        
+        <div class="formula-box">Àrea quadrat = costat²</div>
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> Quadrat de 5 cm de costat<br>
+            A = 5² = <strong>25 cm²</strong>
+        </div>
+        
+        <div class="formula-box">Àrea triangle = (base × altura) / 2</div>
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> Triangle amb base 6 cm i altura 4 cm<br>
+            A = (6 × 4) / 2 = 24 / 2 = <strong>12 cm²</strong>
+        </div>
         """, unsafe_allow_html=True)
         
         # 5. Mitjana
         st.markdown("""
         <h3 id="mitjana">5. Mitjana aritmètica</h3>
-        <div class="formula">Mitjana = Suma de tots els valors / Nombre de valors</div>
-        <div class="example"><strong>💡 Exemple:</strong> Mitjana de 4, 8, 6: (4 + 8 + 6) / 3 = 18 / 3 = 6</div>
+        <p>La mitjana és el valor que resulta de sumar tots els valors i dividir pel nombre de valors.</p>
+        
+        <div class="formula-box">Mitjana = Suma de tots els valors / Nombre de valors</div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> Mitjana de 4, 8, 6<br>
+            Mitjana = (4 + 8 + 6) / 3 = 18 / 3 = <strong>6</strong>
+        </div>
         """, unsafe_allow_html=True)
         
         # 6. Fraccions
         st.markdown("""
         <h3 id="fraccions">6. Fraccions</h3>
-        <div class="formula">Suma: a/b + c/d = (a×d + c×b) / (b×d)</div>
-        <div class="example"><strong>💡 Exemple:</strong> 3/4 + 1/2 = (3×2 + 1×4) / (4×2) = 10/8 = 5/4</div>
-        <div class="formula">Producte: a/b × c/d = (a×c) / (b×d)</div>
-        <div class="example"><strong>💡 Exemple:</strong> 2/3 × 3/4 = 6/12 = 1/2</div>
-        <div class="formula">Divisió: a/b ÷ c/d = (a×d) / (b×c)</div>
-        <div class="example"><strong>💡 Exemple:</strong> 5/8 ÷ 3/4 = (5×4) / (8×3) = 20/24 = 5/6</div>
+        
+        <div class="formula-box">Suma: a/b + c/d = (a×d + c×b) / (b×d)</div>
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> 3/4 + 1/2 = (3×2 + 1×4) / (4×2) = (6+4)/8 = 10/8 = <strong>5/4</strong>
+        </div>
+        
+        <div class="formula-box">Producte: a/b × c/d = (a×c) / (b×d)</div>
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> 2/3 × 3/4 = (2×3) / (3×4) = 6/12 = <strong>1/2</strong>
+        </div>
+        
+        <div class="formula-box">Divisió: a/b ÷ c/d = (a×d) / (b×c)</div>
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> 5/8 ÷ 3/4 = (5×4) / (8×3) = 20/24 = <strong>5/6</strong>
+        </div>
         """, unsafe_allow_html=True)
         
         # 7. Potències
         st.markdown("""
         <h3 id="potencies">7. Potències</h3>
-        <div class="formula">aⁿ = a × a × ... × a (n vegades)</div>
-        <div class="example"><strong>💡 Exemple:</strong> 2³ = 2 × 2 × 2 = 8</div>
-        <div class="example"><strong>💡 Exemple:</strong> 3² × 2³ = 9 × 8 = 72</div>
-        <div class="formula">Arrel quadrada: √x = y si y² = x</div>
-        <div class="example"><strong>💡 Exemple:</strong> √49 + √16 = 7 + 4 = 11</div>
+        <p>Una potència és una multiplicació repetida del mateix nombre.</p>
+        
+        <div class="formula-box">aⁿ = a × a × ... × a (n vegades)</div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple 1:</strong> 2³ = 2 × 2 × 2 = <strong>8</strong>
+        </div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple 2:</strong> 3² × 2³ = 9 × 8 = <strong>72</strong>
+        </div>
+        
+        <h4>📋 Arrels quadrades</h4>
+        <div class="formula-box">√x = y si y² = x</div>
+        
+        <div class="example-box">
+            <strong>💡 Exemple:</strong> √49 + √16 = 7 + 4 = <strong>11</strong>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="text-align:center;color:#636E72;padding-top:1rem;border-top:2px solid #DFE6E9;margin-top:1rem;">
+            📐 La pràctica constant és la clau per dominar les matemàtiques!
+        </div>
         """, unsafe_allow_html=True)
         
         st.markdown('</div>', unsafe_allow_html=True)
@@ -1853,7 +1948,7 @@ def ortografia_page():
             <strong>🔊 Vocals obertes:</strong> à, è, ò<br>
             <strong>🔊 Vocals tancades:</strong> é, í, ó, ú
         </div>
-        <div class="example">
+        <div class="example-box">
             <strong>💡 Exemples:</strong><br>
             • <strong>è</strong> oberta: cafè, pedra<br>
             • <strong>é</strong> tancada: café, té<br>
@@ -1866,14 +1961,14 @@ def ortografia_page():
         st.markdown("""
         <h3 id="apostrof">3. Apostrofació i contraccions</h3>
         <p>S'apostrofen els articles <strong>el, la, en</strong> i les preposicions <strong>de, per</strong> davant de paraula que comença per vocal o h.</p>
-        <div class="example">
+        <div class="example-box">
             <strong>💡 Exemples:</strong> l'home, l'escola, d'ahir
         </div>
         <div class="rule-box warning">
             <strong>⚠️ Excepcions:</strong> No s'apostrofa davant de <strong>la, una</strong>, o davant de paraules que comencen per <strong>i</strong> o <strong>u</strong> àtones.
         </div>
         <p><strong>📋 Contraccions:</strong></p>
-        <div class="example">
+        <div class="example-box">
             • de + el = <strong>del</strong> → el llibre <strong>del</strong> noi<br>
             • per + el = <strong>pel</strong> → <strong>pel</strong> camí
         </div>
@@ -1985,7 +2080,7 @@ def ortografia_page():
         st.markdown("""
         <h3 id="diacritics">11. Els accents diacrítics</h3>
         <p>L'accent diacrític diferencia paraules que s'escriuen igual però tenen significats diferents.</p>
-        <div class="example">
+        <div class="example-box">
             <strong>💡 Exemples:</strong><br>
             • <strong>sé</strong> (saber) vs <strong>se</strong> (pronom)<br>
             • <strong>és</strong> (verb ser) vs <strong>es</strong> (pronom)<br>
