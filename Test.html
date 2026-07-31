@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Psicotècnic</title>
+    <style>
+        /* ===== RESET I BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 24px;
+            color: #1a2634;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 32px 40px 28px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eef1f5;
+        }
+
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a2634;
+            letter-spacing: -0.3px;
+        }
+
+        .header-left .subtitle {
+            font-size: 14px;
+            color: #7a8798;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #5a6a7a;
+        }
+
+        .header-right .info-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-right .info-item span {
+            font-weight: 600;
+            color: #1a2634;
+        }
+
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #f8f9fc;
+            padding: 8px 16px 8px 20px;
+            border-radius: 40px;
+            margin-bottom: 18px;
+            border: 1px solid #eef1f5;
+        }
+
+        .timer-section label {
+            font-weight: 500;
+            color: #3a4a5a;
+            font-size: 13px;
+            letter-spacing: 0.2px;
+        }
+
+        .timer-section input[type="number"] {
+            width: 60px;
+            padding: 5px 6px;
+            border: 1.5px solid #dce0e6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            background: #ffffff;
+            color: #1a2634;
+            transition: border 0.2s;
+        }
+
+        .timer-section input[type="number"]:focus {
+            outline: none;
+            border-color: #9aa9b9;
+        }
+
+        .timer-section .timer-label {
+            font-weight: 500;
+            color: #5a6a7a;
+            font-size: 13px;
+        }
+
+        .timer-display {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a2634;
+            min-width: 72px;
+            text-align: center;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            letter-spacing: 1px;
+            background: #ffffff;
+            padding: 2px 12px;
+            border-radius: 8px;
+            border: 1px solid #eef1f5;
+        }
+
+        .timer-display.running { color: #2d7d46; border-color: #b8d9c4; }
+        .timer-display.warning { color: #b8860b; border-color: #f0dba8; }
+        .timer-display.danger { color: #b13e3e; border-color: #f0c8c8; animation: pulse 1s infinite; }
+        .timer-display.stopped { color: #7a8798; border-color: #e8ebf0; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn-timer {
+            background: transparent;
+            color: #3a4a5a;
+            border: 1.5px solid #dce0e6;
+            padding: 5px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-timer:hover {
+            background: #eef1f5;
+            border-color: #bcc4ce;
+        }
+
+        .btn-timer.stop {
+            background: #fef0f0;
+            border-color: #e8c8c8;
+            color: #b13e3e;
+        }
+
+        .btn-timer.stop:hover {
+            background: #fce4e4;
+        }
+
+        .btn-timer.reset-timer {
+            color: #7a8798;
+        }
+
+        .btn-timer:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            font-size: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            padding: 6px 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #4a5a6a;
+            font-weight: 450;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            border: 1px solid #e0e4ea;
+            flex-shrink: 0;
+        }
+
+        .legend-color.unanswered { background: #f2f4f8; }
+        .legend-color.marked { background: #dbeafe; border-color: #9ab8d9; }
+        .legend-color.correct { background: #d4edda; border-color: #8fc9a0; }
+        .legend-color.wrong { background: #f8d7da; border-color: #e8b8b8; }
+
+        .respostes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 28px;
+            margin-bottom: 22px;
+        }
+
+        .pregunta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 6px 5px 4px;
+            border-radius: 6px;
+            transition: all 0.15s;
+            font-size: 13px;
+            border-bottom: 1px solid transparent;
+        }
+
+        .pregunta-item:hover {
+            background: #f8f9fc;
+            border-bottom-color: #e8ebf0;
+        }
+
+        .pregunta-item .num {
+            font-weight: 500;
+            color: #5a6a7a;
+            min-width: 30px;
+            font-size: 12px;
+            letter-spacing: 0.2px;
+        }
+
+        .pregunta-item .opcions {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .pregunta-item .opcio {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 1px 6px 1px 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 12px;
+        }
+
+        .pregunta-item .opcio:hover {
+            background: #f0f2f6;
+        }
+
+        .pregunta-item .opcio input[type="radio"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: #4a6a8a;
+            margin: 0;
+            opacity: 0.6;
+            transition: opacity 0.15s;
+        }
+
+        .pregunta-item .opcio input[type="radio"]:hover {
+            opacity: 1;
+        }
+
+        .pregunta-item .opcio input[type="radio"]:checked {
+            opacity: 1;
+        }
+
+        .pregunta-item .opcio label {
+            cursor: pointer;
+            color: #2a3a4a;
+            font-size: 12px;
+            font-weight: 450;
+        }
+
+        .pregunta-item .opcio label .lletra {
+            font-weight: 500;
+            color: #6a7a8a;
+        }
+
+        .pregunta-item .marcat {
+            background: #dbeafe;
+            border-radius: 4px;
+            padding: 1px 6px 1px 4px;
+        }
+
+        .pregunta-item .marcat label .lletra {
+            color: #1a4a7a;
+        }
+
+        .pregunta-item.correcta {
+            background: #f4faf6;
+            border-left: 3px solid #7ab892;
+            padding-left: 8px;
+        }
+
+        .pregunta-item.incorrecta {
+            background: #fcf6f6;
+            border-left: 3px solid #dba8a8;
+            padding-left: 8px;
+        }
+
+        .pregunta-item.corregida .opcio.correcta-answer {
+            background: #d4edda;
+            border-radius: 4px;
+            padding: 1px 6px 1px 4px;
+        }
+
+        .pregunta-item.corregida .opcio.correcta-answer label .lletra {
+            color: #1a6a3a;
+        }
+
+        .pregunta-item.corregida .opcio.wrong-answer {
+            background: #f8d7da;
+            border-radius: 4px;
+            padding: 1px 6px 1px 4px;
+        }
+
+        .pregunta-item.corregida .opcio.wrong-answer label .lletra {
+            color: #a83a3a;
+        }
+
+        .pregunta-item.corregida .opcio.correcta-buida {
+            background: #e8f5ed;
+            border-radius: 4px;
+            padding: 1px 6px 1px 4px;
+            border: 1.5px dashed #7ab892;
+        }
+
+        .pregunta-item.corregida .opcio.correcta-buida label .lletra {
+            color: #1a6a3a;
+        }
+
+        .pregunta-item.temps-esgotat {
+            opacity: 0.7;
+        }
+
+        .pregunta-item.temps-esgotat .num {
+            color: #b13e3e;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px 20px;
+            background: #f8f9fc;
+            border-radius: 14px;
+            border: 1px solid #eef1f5;
+            margin-top: 4px;
+        }
+
+        .action-bar .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+
+        .action-bar .stats .stat-item {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .action-bar .stats .stat-item .label {
+            color: #6a7a8a;
+            font-weight: 450;
+        }
+
+        .action-bar .stats .stat-item .value {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1a2634;
+        }
+
+        .action-bar .stats .stat-item .value.correct-val { color: #2d7d46; }
+        .action-bar .stats .stat-item .value.wrong-val { color: #b13e3e; }
+        .action-bar .stats .stat-item .value.nota-val {
+            color: #1a4a7a;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .action-bar .stats .stat-item .value.temps-val {
+            color: #5a6a7a;
+            font-size: 14px;
+        }
+
+        .btn-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 24px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: #1a4a7a;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(26, 74, 122, 0.12);
+        }
+
+        .btn-primary:hover {
+            background: #0f3a62;
+            box-shadow: 0 4px 14px rgba(26, 74, 122, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: #b0bcc8;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #eef1f5;
+            color: #3a4a5a;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e6ec;
+        }
+
+        .respostes-buides {
+            color: #b8860b;
+            font-weight: 450;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+            font-size: 13px;
+            background: #fcf8e8;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #f0e8c8;
+        }
+
+        @keyframes highlightFade {
+            0% { background: #fcf8e8; }
+            100% { background: transparent; }
+        }
+
+        .pregunta-item.highlight {
+            animation: highlightFade 1s ease;
+        }
+
+        /* ===== ALERTA TEMPS ESGOTAT ===== */
+        .alerta-temps {
+            display: none;
+            background: #fef0f0;
+            border: 2px solid #b13e3e;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-top: 14px;
+            text-align: center;
+            font-weight: 600;
+            color: #b13e3e;
+            font-size: 16px;
+        }
+
+        .alerta-temps.visible {
+            display: block;
+            animation: highlightFade 0.5s ease;
+        }
+
+        @media print {
+            body { background: white; padding: 12px; }
+            .container { box-shadow: none; border: 1px solid #ddd; padding: 20px; }
+            .timer-section { display: none; }
+            .btn, .btn-actions { display: none; }
+            .action-bar { background: #f5f5f5; border: 1px solid #ddd; break-inside: avoid; }
+            .pregunta-item { break-inside: avoid; }
+            .header-right { font-size: 11px; }
+            .respostes-grid { gap: 2px 20px; }
+            .alerta-temps { display: none !important; }
+        }
+
+        @media (max-width: 800px) {
+            .container { padding: 20px; }
+            .respostes-grid { gap: 4px 16px; }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            .container { padding: 16px; border-radius: 14px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .header-right { font-size: 12px; gap: 10px; }
+            .respostes-grid { grid-template-columns: 1fr; gap: 2px; }
+            .action-bar { flex-direction: column; align-items: stretch; text-align: center; }
+            .action-bar .stats { justify-content: center; }
+            .btn-actions { justify-content: center; }
+            .timer-section { justify-content: center; padding: 8px 12px; }
+            .timer-display { font-size: 18px; min-width: 60px; }
+        }
+
+        @media (max-width: 400px) {
+            .pregunta-item .opcions { gap: 1px; }
+            .pregunta-item .opcio { font-size: 11px; padding: 1px 4px; }
+            .pregunta-item .opcio input[type="radio"] { width: 13px; height: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div class="header-left">
+            <h1>🧠 Test Psicotècnic</h1>
+            <div class="subtitle">70 preguntes · Razonament i agilitat mental</div>
+        </div>
+        <div class="header-right">
+            <span class="info-item">📋 <span>70</span> preguntes</span>
+            <span class="info-item">⏱️ <span>75</span> min recomanats</span>
+            <span class="info-item">📊 <span>1</span> punt / encert</span>
+            <span class="info-item">📌 respostes buides permeses</span>
+        </div>
+    </div>
+
+    <div class="timer-section">
+        <label>⏱️ Temporitzador</label>
+        <input type="number" id="timerInput" value="75" min="1" max="180">
+        <span class="timer-label">min</span>
+        <button class="btn-timer" id="btnIniciarTimer">▶ Iniciar</button>
+        <button class="btn-timer reset-timer" id="btnResetTimer">↺ Reiniciar</button>
+        <span class="timer-display" id="timerDisplay">75:00</span>
+    </div>
+
+    <div class="legend">
+        <span class="legend-item">
+            <span class="legend-color unanswered"></span> Sense respondre
+        </span>
+        <span class="legend-item">
+            <span class="legend-color marked"></span> Marcada
+        </span>
+        <span class="legend-item">
+            <span class="legend-color correct"></span> Correcta
+        </span>
+        <span class="legend-item">
+            <span class="legend-color wrong"></span> Incorrecta
+        </span>
+    </div>
+
+    <div id="respostesContainer" class="respostes-grid">
+        <!-- Generat per JavaScript -->
+    </div>
+
+    <div class="action-bar">
+        <div class="stats" id="statsPanel">
+            <span class="stat-item">
+                <span class="label">✅ Encerts</span>
+                <span class="value correct-val" id="encertsCount">0</span>
+            </span>
+            <span class="stat-item">
+                <span class="label">❌ Errors</span>
+                <span class="value wrong-val" id="errorsCount">0</span>
+            </span>
+            <span class="stat-item">
+                <span class="label">📊 Puntuació</span>
+                <span class="value" id="puntuacioCount">0/70</span>
+            </span>
+            <span class="stat-item">
+                <span class="label">🎯 Nota</span>
+                <span class="value nota-val" id="notaCount">--</span>
+            </span>
+            <span class="stat-item">
+                <span class="label">⏱️ Temps</span>
+                <span class="value temps-val" id="tempsFinal">--</span>
+            </span>
+        </div>
+        <div class="btn-actions">
+            <button class="btn btn-primary" id="btnCorregir">📝 Corregir</button>
+            <button class="btn btn-secondary" id="btnReset">🔄 Reiniciar</button>
+        </div>
+    </div>
+
+    <div id="respostesBuides" class="respostes-buides">
+        ℹ️ Hi ha preguntes sense respondre. Pots corregir igualment o revisar-les.
+    </div>
+
+    <!-- ===== ALERTA TEMPS ESGOTAT ===== -->
+    <div id="alertaTemps" class="alerta-temps">
+        ⏰ Temps esgotat! S'ha realitzat la correcció automàtica.
+    </div>
+
+</div>
+
+<script>
+    // ============================================================
+    // DADES: 70 preguntes
+    // ============================================================
+
+    const preguntes = [
+        // Bloc 1: Operacions combinades (1-10)
+        { id: 1, correcta: 3 },
+        { id: 2, correcta: 3 },
+        { id: 3, correcta: 2 },
+        { id: 4, correcta: 0 },
+        { id: 5, correcta: 2 },
+        { id: 6, correcta: 1 },
+        { id: 7, correcta: 0 },
+        { id: 8, correcta: 3 },
+        { id: 9, correcta: 3 },
+        { id: 10, correcta: 2 },
+
+        // Bloc 2: Percentatges i regles de tres (11-20)
+        { id: 11, correcta: 0 },
+        { id: 12, correcta: 1 },
+        { id: 13, correcta: 2 },
+        { id: 14, correcta: 2 },
+        { id: 15, correcta: 2 },
+        { id: 16, correcta: 0 },
+        { id: 17, correcta: 2 },
+        { id: 18, correcta: 2 },
+        { id: 19, correcta: 2 },
+        { id: 20, correcta: 1 },
+
+        // Bloc 3: Operacions amb incògnites (21-30)
+        { id: 21, correcta: 1 },
+        { id: 22, correcta: 1 },
+        { id: 23, correcta: 2 },
+        { id: 24, correcta: 1 },
+        { id: 25, correcta: 3 },
+        { id: 26, correcta: 1 },
+        { id: 27, correcta: 2 },
+        { id: 28, correcta: 1 },
+        { id: 29, correcta: 2 },
+        { id: 30, correcta: 3 },
+
+        // Bloc 4: Preguntes mixtes i equacions (31-40)
+        { id: 31, correcta: 3 },
+        { id: 32, correcta: 1 },
+        { id: 33, correcta: 2 },
+        { id: 34, correcta: 3 },
+        { id: 35, correcta: 2 },
+        { id: 36, correcta: 2 },
+        { id: 37, correcta: 2 },
+        { id: 38, correcta: 2 },
+        { id: 39, correcta: 2 },
+        { id: 40, correcta: 2 },
+
+        // Bloc 5: Noves preguntes 41-54
+        { id: 41, correcta: 3 },
+        { id: 42, correcta: 3 },
+        { id: 43, correcta: 0 },
+        { id: 44, correcta: 0 },
+        { id: 45, correcta: 2 },
+        { id: 46, correcta: 3 },
+        { id: 47, correcta: 1 },
+        { id: 48, correcta: 3 },
+        { id: 49, correcta: 2 },
+        { id: 50, correcta: 3 },
+        { id: 51, correcta: 3 },
+        { id: 52, correcta: 3 },
+        { id: 53, correcta: 3 },
+        { id: 54, correcta: 2 },
+
+        // Bloc 6: Noves preguntes 55-70
+        { id: 55, correcta: 2 },
+        { id: 56, correcta: 3 },
+        { id: 57, correcta: 2 },
+        { id: 58, correcta: 1 },
+        { id: 59, correcta: 0 },
+        { id: 60, correcta: 3 },
+        { id: 61, correcta: 1 },
+        { id: 62, correcta: 2 },
+        { id: 63, correcta: 0 },
+        { id: 64, correcta: 3 },
+        { id: 65, correcta: 1 },
+        { id: 66, correcta: 0 },
+        { id: 67, correcta: 0 },
+        { id: 68, correcta: 2 },
+        { id: 69, correcta: 2 },
+        { id: 70, correcta: 0 }
+    ];
+
+    // ============================================================
+    // LÒGICA
+    // ============================================================
+
+    const totalPreguntes = preguntes.length;
+    let respostes = new Array(totalPreguntes).fill(null);
+    let corregit = false;
+    let timerInterval = null;
+    let tempsRestant = 0;
+    let tempsTotal = 0;
+    let timerActiu = false;
+    let tempsAturat = false;
+    let correccioAutomaticaFeta = false;
+
+    const container = document.getElementById('respostesContainer');
+    const btnCorregir = document.getElementById('btnCorregir');
+    const btnReset = document.getElementById('btnReset');
+    const encertsSpan = document.getElementById('encertsCount');
+    const errorsSpan = document.getElementById('errorsCount');
+    const puntuacioSpan = document.getElementById('puntuacioCount');
+    const notaSpan = document.getElementById('notaCount');
+    const tempsFinalSpan = document.getElementById('tempsFinal');
+    const respostesBuidesDiv = document.getElementById('respostesBuides');
+    const alertaTempsDiv = document.getElementById('alertaTemps');
+
+    const timerInput = document.getElementById('timerInput');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const btnIniciarTimer = document.getElementById('btnIniciarTimer');
+    const btnResetTimer = document.getElementById('btnResetTimer');
+
+    const lletres = ['a', 'b', 'c', 'd'];
+
+    // ============================================================
+    // RENDERITZAR PREGUNTES
+    // ============================================================
+
+    function renderPreguntes() {
+        container.innerHTML = '';
+        const meitat = Math.ceil(totalPreguntes / 2);
+        const col1 = preguntes.slice(0, meitat);
+        const col2 = preguntes.slice(meitat);
+
+        const items = [];
+        for (let i = 0; i < Math.max(col1.length, col2.length); i++) {
+            if (i < col1.length) items.push({ p: col1[i], idx: i });
+            if (i < col2.length) items.push({ p: col2[i], idx: meitat + i });
+        }
+
+        items.forEach(({ p, idx }) => {
+            const item = document.createElement('div');
+            item.className = 'pregunta-item';
+            item.dataset.index = idx;
+            item.id = `pregunta-${idx}`;
+
+            const num = document.createElement('span');
+            num.className = 'num';
+            num.textContent = `${p.id}.`;
+
+            const ops = document.createElement('div');
+            ops.className = 'opcions';
+
+            lletres.forEach((l, oi) => {
+                const op = document.createElement('div');
+                op.className = 'opcio';
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `pregunta-${idx}`;
+                radio.value = oi;
+                radio.id = `p${idx}-op${oi}`;
+                radio.addEventListener('change', () => {
+                    if (corregit) {
+                        corregit = false;
+                        btnCorregir.disabled = false;
+                        netejarCorreccio();
+                        correccioAutomaticaFeta = false;
+                        alertaTempsDiv.classList.remove('visible');
+                    }
+                    respostes[idx] = oi;
+                    actualitzarEstatVisual(idx);
+                });
+
+                const label = document.createElement('label');
+                label.htmlFor = `p${idx}-op${oi}`;
+                label.innerHTML = `<span class="lletra">(${l})</span>`;
+
+                op.appendChild(radio);
+                op.appendChild(label);
+                ops.appendChild(op);
+            });
+
+            item.appendChild(num);
+            item.appendChild(ops);
+            container.appendChild(item);
+
+            if (respostes[idx] !== null) {
+                const radio = document.querySelector(`input[name="pregunta-${idx}"][value="${respostes[idx]}"]`);
+                if (radio) radio.checked = true;
+                actualitzarEstatVisual(idx);
+            }
+        });
+    }
+
+    // ============================================================
+    // ESTATS VISUALS
+    // ============================================================
+
+    function actualitzarEstatVisual(idx) {
+        const item = document.getElementById(`pregunta-${idx}`);
+        if (!item) return;
+
+        item.classList.remove('correcta', 'incorrecta', 'corregida');
+
+        const resposta = respostes[idx];
+        const ops = item.querySelectorAll('.opcio');
+
+        ops.forEach(op => op.classList.remove('marcat', 'correcta-answer', 'wrong-answer', 'correcta-buida'));
+
+        if (resposta !== null) {
+            ops.forEach((op, i) => { if (i === resposta) op.classList.add('marcat'); });
+        }
+
+        if (corregit) {
+            const correcta = preguntes[idx].correcta;
+
+            ops.forEach((op, i) => {
+                if (i === correcta) op.classList.add('correcta-answer');
+            });
+
+            if (resposta !== null) {
+                if (resposta === correcta) {
+                    item.classList.add('correcta');
+                } else {
+                    item.classList.add('incorrecta');
+                    ops.forEach((op, i) => {
+                        if (i === resposta && resposta !== correcta) op.classList.add('wrong-answer');
+                    });
+                }
+            } else {
+                ops.forEach((op, i) => {
+                    if (i === correcta) op.classList.add('correcta-buida');
+                });
+                item.classList.add('corregida');
+            }
+            item.classList.add('corregida');
+        }
+    }
+
+    function netejarCorreccio() {
+        document.querySelectorAll('.pregunta-item').forEach(item => {
+            item.classList.remove('correcta', 'incorrecta', 'corregida', 'temps-esgotat');
+            item.querySelectorAll('.opcio').forEach(op => {
+                op.classList.remove('correcta-answer', 'wrong-answer', 'correcta-buida');
+            });
+        });
+        encertsSpan.textContent = '0';
+        errorsSpan.textContent = '0';
+        puntuacioSpan.textContent = `0/${totalPreguntes}`;
+        notaSpan.textContent = '--';
+        notaSpan.style.color = '#1a4a7a';
+        tempsFinalSpan.textContent = '--';
+        respostesBuidesDiv.style.display = 'none';
+        alertaTempsDiv.classList.remove('visible');
+        correccioAutomaticaFeta = false;
+    }
+
+    // ============================================================
+    // FUNCIÓ DE CORRECCIÓ (reutilitzable)
+    // ============================================================
+
+    function ferCorreccio(automatica = false) {
+        if (corregit) return;
+
+        if (timerActiu) pararTimerIForçar();
+
+        const buides = respostes.some(r => r === null);
+        if (buides) {
+            respostesBuidesDiv.style.display = 'block';
+            respostes.forEach((r, i) => {
+                if (r === null) {
+                    const item = document.getElementById(`pregunta-${i}`);
+                    if (item) {
+                        item.classList.add('highlight');
+                        setTimeout(() => item.classList.remove('highlight'), 1000);
+                    }
+                }
+            });
+        } else {
+            respostesBuidesDiv.style.display = 'none';
+        }
+
+        corregit = true;
+        btnCorregir.disabled = true;
+
+        let encerts = 0, errors = 0;
+        preguntes.forEach((p, i) => {
+            const r = respostes[i];
+            if (r === null) { /* buida */ }
+            else if (r === p.correcta) encerts++;
+            else errors++;
+            actualitzarEstatVisual(i);
+        });
+
+        const nota = (encerts / totalPreguntes) * 10;
+        encertsSpan.textContent = encerts;
+        errorsSpan.textContent = errors;
+        puntuacioSpan.textContent = `${encerts}/${totalPreguntes}`;
+        notaSpan.textContent = nota.toFixed(1);
+
+        if (encerts === totalPreguntes) notaSpan.style.color = '#2d7d46';
+        else if (encerts >= totalPreguntes * 0.7) notaSpan.style.color = '#b8860b';
+        else notaSpan.style.color = '#b13e3e';
+
+        if (tempsAturat || !timerActiu) {
+            const minInicials = parseInt(timerInput.value) || 75;
+            const totalSeg = minInicials * 60;
+            const usat = totalSeg - tempsRestant;
+            if (usat > 0) {
+                const min = Math.floor(usat / 60);
+                const seg = Math.floor(usat % 60);
+                tempsFinalSpan.textContent = `${min}:${seg.toString().padStart(2, '0')}`;
+            } else if (tempsRestant === 0 && tempsAturat) {
+                tempsFinalSpan.textContent = '⏰ Temps esgotat!';
+                document.querySelectorAll('.pregunta-item').forEach(el => el.classList.add('temps-esgotat'));
+            }
+        }
+
+        if (automatica) {
+            correccioAutomaticaFeta = true;
+            alertaTempsDiv.classList.add('visible');
+        }
+    }
+
+    // ============================================================
+    // CORREGIR (manual)
+    // ============================================================
+
+    function corregirManual() {
+        ferCorreccio(false);
+    }
+
+    // ============================================================
+    // REINICIAR
+    // ============================================================
+
+    function reiniciar() {
+        respostes = new Array(totalPreguntes).fill(null);
+        corregit = false;
+        btnCorregir.disabled = false;
+        netejarCorreccio();
+        notaSpan.style.color = '#1a4a7a';
+        tempsFinalSpan.textContent = '--';
+        respostesBuidesDiv.style.display = 'none';
+        correccioAutomaticaFeta = false;
+        alertaTempsDiv.classList.remove('visible');
+
+        document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+        document.querySelectorAll('.pregunta-item').forEach(item => {
+            item.classList.remove('correcta', 'incorrecta', 'corregida', 'highlight', 'temps-esgotat');
+            item.querySelectorAll('.opcio').forEach(op => {
+                op.classList.remove('correcta-answer', 'wrong-answer', 'marcat', 'correcta-buida');
+            });
+        });
+
+        encertsSpan.textContent = '0';
+        errorsSpan.textContent = '0';
+        puntuacioSpan.textContent = `0/${totalPreguntes}`;
+        notaSpan.textContent = '--';
+
+        pararTimer();
+        tempsAturat = false;
+        const min = parseInt(timerInput.value) || 75;
+        tempsRestant = min * 60;
+        actualitzarDisplay();
+        timerActiu = false;
+        btnIniciarTimer.textContent = '▶ Iniciar';
+        btnIniciarTimer.className = 'btn-timer';
+        btnIniciarTimer.disabled = false;
+        timerDisplay.classList.remove('stopped', 'running', 'warning', 'danger');
+    }
+
+    // ============================================================
+    // TEMPORITZADOR
+    // ============================================================
+
+    function actualitzarDisplay() {
+        const min = Math.floor(tempsRestant / 60);
+        const seg = Math.floor(tempsRestant % 60);
+        timerDisplay.textContent = `${min}:${seg.toString().padStart(2, '0')}`;
+        if (!timerActiu) return;
+        if (tempsRestant <= 60) {
+            timerDisplay.className = 'timer-display danger';
+        } else if (tempsRestant <= 300) {
+            timerDisplay.className = 'timer-display warning';
+        } else {
+            timerDisplay.className = 'timer-display running';
+        }
+    }
+
+    function pararTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        timerActiu = false;
+        btnIniciarTimer.textContent = '▶ Iniciar';
+        btnIniciarTimer.className = 'btn-timer';
+        btnIniciarTimer.disabled = false;
+    }
+
+    function pararTimerIForçar() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerActiu = false;
+        tempsAturat = true;
+        btnIniciarTimer.textContent = '⏹ Aturat';
+        btnIniciarTimer.className = 'btn-timer';
+        btnIniciarTimer.disabled = true;
+        timerDisplay.classList.add('stopped');
+        timerDisplay.classList.remove('running', 'warning', 'danger');
+    }
+
+    function iniciarTimer() {
+        if (timerInterval) pararTimer();
+        const min = parseInt(timerInput.value) || 75;
+        tempsTotal = min * 60;
+        tempsRestant = tempsTotal;
+        timerActiu = true;
+        tempsAturat = false;
+        correccioAutomaticaFeta = false;
+        alertaTempsDiv.classList.remove('visible');
+        actualitzarDisplay();
+
+        btnIniciarTimer.textContent = '⏹ Aturar';
+        btnIniciarTimer.className = 'btn-timer stop';
+
+        timerInterval = setInterval(() => {
+            tempsRestant--;
+            actualitzarDisplay();
+
+            // ===== QUAN EL TEMPS ARRIBA A 0 =====
+            if (tempsRestant <= 0) {
+                pararTimer();
+                timerDisplay.textContent = '00:00';
+                timerDisplay.className = 'timer-display danger';
+                btnIniciarTimer.textContent = '▶ Reiniciar';
+                btnIniciarTimer.className = 'btn-timer';
+                tempsAturat = true;
+
+                // Correcció automàtica si no s'ha fet ja
+                if (!corregit && !correccioAutomaticaFeta) {
+                    ferCorreccio(true); // true = automàtica
+                }
+            }
+        }, 1000);
+    }
+
+    function resetTimer() {
+        pararTimer();
+        tempsAturat = false;
+        const min = parseInt(timerInput.value) || 75;
+        tempsRestant = min * 60;
+        actualitzarDisplay();
+        timerActiu = false;
+        btnIniciarTimer.textContent = '▶ Iniciar';
+        btnIniciarTimer.className = 'btn-timer';
+        btnIniciarTimer.disabled = false;
+        timerDisplay.classList.remove('running', 'warning', 'danger', 'stopped');
+        correccioAutomaticaFeta = false;
+        alertaTempsDiv.classList.remove('visible');
+    }
+
+    // ============================================================
+    // INICIALITZACIÓ
+    // ============================================================
+
+    renderPreguntes();
+    const minInicials = parseInt(timerInput.value) || 75;
+    tempsRestant = minInicials * 60;
+    actualitzarDisplay();
+
+    btnCorregir.addEventListener('click', corregirManual);
+    btnReset.addEventListener('click', reiniciar);
+    btnIniciarTimer.addEventListener('click', () => { timerActiu ? pararTimer() : iniciarTimer(); });
+    btnResetTimer.addEventListener('click', resetTimer);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); corregirManual(); }
+    });
+
+    console.log('🧠 Test Psicotècnic carregat!');
+    console.log(`📊 ${totalPreguntes} preguntes.`);
+    console.log('⏰ Quan el temps s\'acabi, es farà la correcció automàtica.');
+    console.log('💡 Ctrl+Enter per corregir manualment.');
+</script>
+
+</body>
+</html>
